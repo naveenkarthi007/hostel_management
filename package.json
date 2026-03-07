@@ -1,0 +1,13 @@
+{
+    "name": "hostel_management",
+    "version": "1.0.0",
+    "description": "Hostel Management System",
+    "scripts": {
+        "start": "npm run start --prefix hostelapp",
+        "dev": "npm run dev --prefix hostelapp",
+        "install:all": "npm install --prefix hostelapp && npm install --prefix hostelapp/backend"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}

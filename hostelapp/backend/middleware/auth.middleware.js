@@ -12,3 +12,19 @@ exports.verifyToken = (req, res, next) => {
     res.status(400).json({ message: 'Invalid token.' });
   }
 };
+
+// Role-Based Access Control (RBAC) Middleware
+exports.authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({ message: 'User role not found. Access forbidden.' });
+    }
+    
+    // Check if user's role string matches one of the allowed roles
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: `Role (${req.user.role}) is not allowed to access this resource.` });
+    }
+    
+    next();
+  };
+};

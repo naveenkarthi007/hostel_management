@@ -3,150 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manager Dashboard — Hostel Management</title>
+  <title>Bannari Amman College — Manager Dashboard</title>
+  <meta name="description" content="Bannari Amman College Manager portal to oversee warden leaves, student leaves, and complaints">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=2">
   <style>
-    :root {
-      --primary: #475569;
-      --primary-dark: #334155;
-      --primary-darker: #1e293b;
-      --primary-light: #f1f5f9;
-      --primary-50: #f8fafc;
-      --primary-100: #f1f5f9;
-      --primary-glow: rgba(30, 41, 59, 0.15);
-      --primary-glow-strong: rgba(30, 41, 59, 0.3);
-    }
-    .navbar { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); box-shadow: 0 4px 30px rgba(15,23,42,0.35); }
-    .welcome-banner { background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%); }
-    .tab.active { color: #1e293b; background: #f1f5f9; }
+    /* Manager accent: Navy gradient */
+    .welcome-banner { background: linear-gradient(135deg, #17283d 0%, #1f3654 50%, #27456B 100%); }
+    .sidebar-brand .brand-icon { background: linear-gradient(135deg, #1f3654, #375985); box-shadow: 0 4px 12px rgba(31,54,84,0.35); }
+    .nav-item.active { background: rgba(203,213,225,0.1); color: #f1f5f9; }
+    .nav-item.active::before { background: #cbd5e1; }
     .stat-cards { grid-template-columns: repeat(4, 1fr); }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <h1><span class="logo-icon">🏢</span> Manager Portal</h1>
-    <div class="nav-right">
-      <span class="user-info" id="nav-user"></span>
-      <button class="btn-logout" onclick="logout()">Logout</button>
-    </div>
-  </nav>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">🏢</span>
+        <span class="brand-text">BIT Hostels</span>
+      </div>
 
-  <div class="dashboard">
-    <!-- Welcome -->
-    <div class="welcome-banner">
-      <div class="welcome-top">
-        <div class="welcome-avatar">🏢</div>
-        <div class="welcome-text">
-          <h2>Welcome, <span id="welcome-name">Manager</span></h2>
-          <p>Oversee warden leaves, student leaves, and hostel complaints</p>
-        </div>
-      </div>
-    </div>
+      <div class="sidebar-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="nav-warden-leaves" onclick="switchTab('warden-leaves', this)">
+          <span class="nav-icon">🛡️</span> Warden Leaves
+        </button>
+        <button class="nav-item" id="nav-student-leaves" onclick="switchTab('student-leaves', this)">
+          <span class="nav-icon">📋</span> Student Leaves
+        </button>
+        <button class="nav-item" id="nav-complaints" onclick="switchTab('complaints', this)">
+          <span class="nav-icon">🛠️</span> Complaints
+        </button>
+      </nav>
 
-    <!-- Stats -->
-    <div class="stat-cards">
-      <div class="stat-card">
-        <div class="stat-icon slate">🛡️</div>
-        <div class="stat-info"><h4 id="stat-warden-leaves">0</h4><p>Warden Leaves</p></div>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar" id="user-avatar" style="background: linear-gradient(135deg,#1f3654,#375985)">M</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="nav-user"></div>
+            <div class="sidebar-user-role">Hostel Manager</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">⏻ Sign Out</button>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon orange">⏳</div>
-        <div class="stat-info"><h4 id="stat-pending-warden">0</h4><p>Pending Warden</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon blue">📋</div>
-        <div class="stat-info"><h4 id="stat-student-leaves">0</h4><p>Student Leaves</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon rose">🛠️</div>
-        <div class="stat-info"><h4 id="stat-complaints">0</h4><p>Complaints</p></div>
-      </div>
-    </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('warden-leaves')"><span class="tab-icon">🛡️</span> Warden Leaves</button>
-      <button class="tab" onclick="switchTab('student-leaves')"><span class="tab-icon">📋</span> Student Leaves</button>
-      <button class="tab" onclick="switchTab('complaints')"><span class="tab-icon">🛠️</span> Complaints</button>
-    </div>
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="content-header">
+        <div class="content-header-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+          <h2 id="page-title">Manager Dashboard</h2>
+        </div>
+        <div class="header-right">
+          <span class="header-badge" id="header-date"></span>
+        </div>
+      </header>
 
-    <!-- Warden Leaves Tab -->
-    <div id="tab-warden-leaves" class="tab-content active">
-      <div class="card">
-        <h3><span class="section-icon icon-warden">🛡️</span> Warden Leave Requests</h3>
-        <div id="warden-leaves-empty" class="empty" style="display:none">
-          <span class="empty-icon">🛡️</span>
-          <p>No warden leave requests found</p>
+      <div class="dashboard">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <div class="welcome-top">
+            <div class="welcome-avatar">🏢</div>
+            <div class="welcome-text">
+              <h2>Welcome, <span id="welcome-name">Manager</span></h2>
+              <p>Oversee warden leaves, student leaves, and hostel complaints</p>
+            </div>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Warden</th><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Alt Warden</th><th>Status</th><th>Action</th></tr>
-            </thead>
-            <tbody id="warden-leaves-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <!-- Student Leaves Tab -->
-    <div id="tab-student-leaves" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-students">📋</span> Student Leave Overview</h3>
-        <div id="student-leaves-empty" class="empty" style="display:none">
-          <span class="empty-icon">📋</span>
-          <p>No student leave records found</p>
+        <!-- Stats -->
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-icon slate">🛡️</div>
+            <div class="stat-info"><h4 id="stat-warden-leaves">—</h4><p>Warden Leaves</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⏳</div>
+            <div class="stat-info"><h4 id="stat-pending-warden">—</h4><p>Pending Warden</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">📋</div>
+            <div class="stat-info"><h4 id="stat-student-leaves">—</h4><p>Student Leaves</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon rose">🛠️</div>
+            <div class="stat-info"><h4 id="stat-complaints">—</h4><p>Complaints</p></div>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Student</th><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Status</th></tr>
-            </thead>
-            <tbody id="student-leaves-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <!-- Complaints Tab -->
-    <div id="tab-complaints" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-complaint">🛠️</span> Hostel Complaints</h3>
-        <div id="complaints-empty" class="empty" style="display:none">
-          <span class="empty-icon">🛠️</span>
-          <p>No complaints found</p>
+        <!-- Warden Leaves Tab -->
+        <div id="tab-warden-leaves" class="tab-content active">
+          <div class="card">
+            <h3><span class="section-icon icon-warden">🛡️</span> Warden Leave Requests</h3>
+            <div id="warden-leaves-empty" class="empty" style="display:none">
+              <span class="empty-icon">🛡️</span>
+              <p>No warden leave requests found</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Warden</th><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Alt Warden</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="warden-leaves-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>User</th><th>Type</th><th>Issue</th><th>Filed</th><th>Status</th><th>Action</th></tr>
-            </thead>
-            <tbody id="complaints-tbody"></tbody>
-          </table>
+
+        <!-- Student Leaves Tab -->
+        <div id="tab-student-leaves" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-students">📋</span> Student Leave Overview</h3>
+            <div id="student-leaves-empty" class="empty" style="display:none">
+              <span class="empty-icon">📋</span>
+              <p>No student leave records found</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Student</th><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Status</th></tr>
+                </thead>
+                <tbody id="student-leaves-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
+
+        <!-- Complaints Tab -->
+        <div id="tab-complaints" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-complaint">🛠️</span> Hostel Complaints</h3>
+            <div id="complaints-empty" class="empty" style="display:none">
+              <span class="empty-icon">🛠️</span>
+              <p>No complaints found</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Student</th><th>Type</th><th>Issue</th><th>Filed On</th><th>Status</th><th>Update Status</th></tr>
+                </thead>
+                <tbody id="complaints-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </main>
   </div>
 
-  <script src="/js/common.js"></script>
+  <script src="/js/common.js?v=2"></script>
   <script>
-    requireAuth(['hostelmanager']);
+    requireAuth(['hostelmanager', 'caretaker', 'messmanager']);
     const user = getUser();
     document.getElementById('nav-user').textContent = user.name;
     document.getElementById('welcome-name').textContent = user.name;
+    document.getElementById('user-avatar').textContent = user.name ? user.name.charAt(0).toUpperCase() : 'M';
+    document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
+    // Load all data on init with skeleton placeholders
+    showSkeletons('warden-leaves-tbody', 8);
+    showSkeletons('student-leaves-tbody', 6);
+    showSkeletons('complaints-tbody', 6);
     loadWardenLeaves();
     loadStudentLeaves();
     loadComplaints();
 
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function switchTab(tab, navEl) {
+      document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      (navEl || document.getElementById('nav-' + tab)).classList.add('active');
       document.getElementById('tab-' + tab).classList.add('active');
+      const titles = { 'warden-leaves': 'Warden Leaves', 'student-leaves': 'Student Leaves', complaints: 'Complaints' };
+      document.getElementById('page-title').textContent = titles[tab] || 'Manager Dashboard';
+      if (window.innerWidth <= 1024) toggleSidebar();
     }
 
     async function loadWardenLeaves() {
@@ -159,27 +199,32 @@
         if (!leaves.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
         empty.style.display = 'none';
         tbody.innerHTML = leaves.map(l => `<tr>
-          <td>${l.warden_name || l.name || '-'}</td>
+          <td><strong>${l.warden_name || l.name || '-'}</strong></td>
           <td>${l.leave_type}</td><td>${l.reason}</td>
           <td>${formatDate(l.from_date)}</td><td>${formatDate(l.to_date)}</td>
-          <td>${l.alt_warden_name || '-'}</td>
+          <td>${l.alternate_warden_name || '—'}</td>
           <td>${statusBadge(l.status)}</td>
           <td>${l.status === 'pending' ? `<div class="action-group">
-            <button class="btn btn-success btn-sm" onclick="updateWardenLeave(${l.warden_leave_id},'approved')">Approve</button>
-            <button class="btn btn-danger btn-sm" onclick="updateWardenLeave(${l.warden_leave_id},'rejected')">Reject</button>
-          </div>` : '-'}</td>
+            <button class="btn btn-success btn-sm" onclick="updateWardenLeave(${l.id},'approved', this)">✔ Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="updateWardenLeave(${l.id},'rejected', this)">✕ Reject</button>
+          </div>` : '—'}</td>
         </tr>`).join('');
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error(e); showToast('Failed to load warden leaves', 'error'); }
     }
 
-    async function updateWardenLeave(id, status) {
+    async function updateWardenLeave(id, status, btn) {
+      const label = status === 'approved' ? 'approve' : 'reject';
+      const ok = await confirmDialog(`Are you sure you want to ${label} this warden leave request?`, 'Confirm Action');
+      if (!ok) return;
+      btn.classList.add('loading'); btn.disabled = true;
       try {
         await apiCall(`/api/warden-leave/status/${id}`, {
           method: 'PATCH',
           body: JSON.stringify({ status })
         });
+        showToast(`Leave request ${status}!`, 'success');
         loadWardenLeaves();
-      } catch (e) { alert(e.message); }
+      } catch (e) { showToast(e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
     }
 
     async function loadStudentLeaves() {
@@ -191,12 +236,12 @@
         if (!leaves.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
         empty.style.display = 'none';
         tbody.innerHTML = leaves.map(l => `<tr>
-          <td>${l.student_name || l.name || '-'}</td>
+          <td><strong>${l.student_name || l.name || '-'}</strong></td>
           <td>${l.leave_type}</td><td>${l.reason}</td>
           <td>${formatDate(l.from_date)}</td><td>${formatDate(l.to_date)}</td>
           <td>${statusBadge(l.status)}</td>
         </tr>`).join('');
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error(e); showToast('Failed to load student leaves', 'error'); }
     }
 
     async function loadComplaints() {
@@ -208,31 +253,39 @@
         if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
         empty.style.display = 'none';
         tbody.innerHTML = list.map(c => `<tr>
-          <td>${c.name || '-'}</td>
-          <td>${c.complaint_type}</td><td>${c.description}</td>
+          <td><strong>${c.student_name || '-'}</strong></td>
+          <td>${c.complaint_type}</td>
+          <td style="max-width:200px;white-space:normal">${c.issue}</td>
           <td>${formatDate(c.created_at)}</td>
           <td>${statusBadge(c.status)}</td>
-          <td><div class="action-group">
-            <select onchange="updateComplaint(${c.complaint_id}, this.value)">
+          <td>
+            <select onchange="updateComplaint(${c.id}, this)" style="font-size:0.78rem;padding:6px 10px;width:auto">
               <option value="">Change…</option>
-              <option value="pending">Pending</option>
-              <option value="assigned">Assigned</option>
-              <option value="resolved">Resolved</option>
+              <option value="pending" ${c.status==='pending'?'selected':''}>Pending</option>
+              <option value="assigned" ${c.status==='assigned'?'selected':''}>Assigned</option>
+              <option value="resolved" ${c.status==='resolved'?'selected':''}>Resolved</option>
             </select>
-          </div></td>
+          </td>
         </tr>`).join('');
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error(e); showToast('Failed to load complaints', 'error'); }
     }
 
-    async function updateComplaint(id, status) {
+    async function updateComplaint(id, selectEl) {
+      const status = selectEl.value;
       if (!status) return;
+      const origVal = selectEl.dataset.prev || '';
+      selectEl.dataset.prev = selectEl.value;
       try {
         await apiCall(`/api/complaints/${id}/status`, {
           method: 'PUT',
           body: JSON.stringify({ status })
         });
+        showToast(`Complaint marked as "${status}"`, 'success');
         loadComplaints();
-      } catch (e) { alert(e.message); }
+      } catch (e) {
+        showToast(e.message, 'error');
+        selectEl.value = origVal;
+      }
     }
   </script>
 </body>

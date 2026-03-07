@@ -5,15 +5,15 @@ exports.applyLeave = async (req, res) => {
   try {
     const {wardenId}=req.params;
     const {
-      leavetype,
+      leave_type,
       from_date,
       to_date,
       reason,
-      contact,
-      alternate_warden,
+      alt_warden_contact,
+      alt_warden_name,
     } = req.body;
 
-    // Get warden_id from email
+    // Get warden_id from warden table
     const [wardenRows] = await pool.query(
       'SELECT warden_id FROM warden WHERE warden_id = ?',
       [wardenId]
@@ -26,7 +26,7 @@ exports.applyLeave = async (req, res) => {
     // Get alternate warden id from contact
     const [altRows] = await pool.query(
       'SELECT warden_id FROM warden WHERE contact = ?',
-      [contact]
+      [alt_warden_contact]
     );
     if (!altRows.length)
       return res.status(404).json({ message: 'Alternate warden not found' });
@@ -59,13 +59,13 @@ exports.applyLeave = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
       [
         warden_id,
-        leavetype,
+        leave_type,
         from_date,
         to_date,
         reason,
-        alternate_warden,
+        alt_warden_name,
         alternate_wardenId,
-        contact,
+        alt_warden_contact,
       ]
     );
 
@@ -136,7 +136,6 @@ exports.getAllLeaves = async (req, res) => {
        FROM warden_leave_requests wl
        JOIN warden w1 ON wl.warden_id = w1.warden_id
        JOIN warden w2 ON wl.alternate_wardenId = w2.warden_id
-       WHERE wl.status='pending'
       ORDER BY wl.created_at DESC`
     );
     res.json(rows);

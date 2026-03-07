@@ -3,311 +3,368 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Dashboard — Hostel Management</title>
+  <title>Bannari Amman College — Student Dashboard</title>
+  <meta name="description" content="Bannari Amman College Student portal to manage leaves, complaints, and profile">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=2">
   <style>
-    :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --primary-darker: #4338ca;
-      --primary-light: #eef2ff;
-      --primary-50: #eef2ff;
-      --primary-100: #e0e7ff;
-      --primary-glow: rgba(99, 102, 241, 0.18);
-      --primary-glow-strong: rgba(99, 102, 241, 0.35);
-    }
-    .navbar { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); box-shadow: 0 4px 30px rgba(99,102,241,0.25); }
-    .welcome-banner { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); }
-    .tab.active { color: #6366f1; background: #eef2ff; }
+    .welcome-banner { background: linear-gradient(135deg, #27456B 0%, #1f3654 50%, #17283d 100%); }
     .stat-cards { grid-template-columns: repeat(4, 1fr); }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <h1><span class="logo-icon">🎓</span> Student Portal</h1>
-    <div class="nav-right">
-      <span class="user-info" id="nav-user"></span>
-      <button class="btn-logout" onclick="logout()">Logout</button>
-    </div>
-  </nav>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">🎓</span>
+        <span class="brand-text">BIT Hostels</span>
+      </div>
 
-  <div class="dashboard">
-    <!-- Welcome -->
-    <div class="welcome-banner">
-      <div class="welcome-top">
-        <div class="welcome-avatar">🎓</div>
-        <div class="welcome-text">
-          <h2>Welcome, <span id="welcome-name">Student</span></h2>
-          <p>Manage your leaves, track complaints, and view your profile</p>
-        </div>
-      </div>
-    </div>
+      <div class="sidebar-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="nav-profile" onclick="switchTab('profile', this)">
+          <span class="nav-icon">👤</span> Profile
+        </button>
+        <button class="nav-item" id="nav-apply-leave" onclick="switchTab('apply-leave', this)">
+          <span class="nav-icon">✍️</span> Apply Leave
+        </button>
+        <button class="nav-item" id="nav-my-leaves" onclick="switchTab('my-leaves', this)">
+          <span class="nav-icon">📄</span> My Leaves
+        </button>
+        <button class="nav-item" id="nav-complaints" onclick="switchTab('complaints', this)">
+          <span class="nav-icon">🛠️</span> Complaints
+        </button>
+      </nav>
 
-    <!-- Stats -->
-    <div class="stat-cards">
-      <div class="stat-card">
-        <div class="stat-icon purple">📋</div>
-        <div class="stat-info"><h4 id="stat-leaves">0</h4><p>Total Leaves</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green">✅</div>
-        <div class="stat-info"><h4 id="stat-approved">0</h4><p>Approved</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon orange">⏳</div>
-        <div class="stat-info"><h4 id="stat-pending">0</h4><p>Pending</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon blue">🛠️</div>
-        <div class="stat-info"><h4 id="stat-complaints">0</h4><p>Complaints</p></div>
-      </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('profile')"><span class="tab-icon">👤</span> Profile</button>
-      <button class="tab" onclick="switchTab('apply-leave')"><span class="tab-icon">✍️</span> Apply Leave</button>
-      <button class="tab" onclick="switchTab('my-leaves')"><span class="tab-icon">📄</span> My Leaves</button>
-      <button class="tab" onclick="switchTab('complaints')"><span class="tab-icon">🛠️</span> Complaints</button>
-    </div>
-
-    <!-- Profile Tab -->
-    <div id="tab-profile" class="tab-content active">
-      <div class="card">
-        <h3><span class="section-icon icon-profile">👤</span> My Profile</h3>
-        <div id="student-profile" class="profile-grid"></div>
-      </div>
-      <div class="card">
-        <h3><span class="section-icon icon-warden">🧑‍🏫</span> Warden Information</h3>
-        <div id="warden-info" class="profile-grid"></div>
-      </div>
-    </div>
-
-    <!-- Apply Leave Tab -->
-    <div id="tab-apply-leave" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-leave">✍️</span> Apply for Leave</h3>
-        <div id="leave-alert" class="alert"></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Leave Type</label>
-            <select id="leave-type">
-              <option value="Sick Leave">Sick Leave</option>
-              <option value="Personal Leave">Personal Leave</option>
-              <option value="Emergency Leave">Emergency Leave</option>
-              <option value="Vacation Leave">Vacation Leave</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Reason</label>
-            <input type="text" id="leave-reason" placeholder="Brief reason for leave">
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar" id="user-avatar">S</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="nav-user"></div>
+            <div class="sidebar-user-role">Student</div>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>From Date</label>
-            <input type="date" id="leave-from">
-          </div>
-          <div class="form-group">
-            <label>To Date</label>
-            <input type="date" id="leave-to">
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" onclick="applyLeave()" style="width:auto">Submit Leave Request</button>
-        </div>
+        <button class="btn-logout" onclick="logout()">⏻ Sign Out</button>
       </div>
-    </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <!-- My Leaves Tab -->
-    <div id="tab-my-leaves" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-history">📄</span> Leave History</h3>
-        <div id="leaves-empty" class="empty" style="display:none">
-          <span class="empty-icon">📋</span>
-          <p>No leave records found</p>
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="content-header">
+        <div class="content-header-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+          <h2 id="page-title">Dashboard</h2>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Status</th><th>Action</th></tr>
-            </thead>
-            <tbody id="leaves-tbody"></tbody>
-          </table>
+        <div class="header-right">
+          <span class="header-badge" id="header-date"></span>
         </div>
-      </div>
-    </div>
+      </header>
 
-    <!-- Complaints Tab -->
-    <div id="tab-complaints" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-complaint">🛠️</span> File a Complaint</h3>
-        <div id="complaint-alert" class="alert"></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Complaint Type</label>
-            <select id="complaint-type">
-              <option value="Maintenance">Maintenance</option>
-              <option value="Electrical">Electrical</option>
-              <option value="Plumbing">Plumbing</option>
-              <option value="Cleanliness">Cleanliness</option>
-              <option value="Food">Food</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Attachment (optional)</label>
-            <input type="file" id="complaint-file" accept="image/*">
+      <div class="dashboard">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <div class="welcome-top">
+            <div class="welcome-avatar">🎓</div>
+            <div class="welcome-text">
+              <h2>Welcome, <span id="welcome-name">Student</span></h2>
+              <p>Manage your leaves, track complaints, and view your profile</p>
+            </div>
           </div>
         </div>
-        <div class="form-group">
-          <label>Describe the Issue</label>
-          <textarea id="complaint-issue" placeholder="Describe your complaint in detail..."></textarea>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" onclick="submitComplaint()" style="width:auto">Submit Complaint</button>
-        </div>
-      </div>
 
-      <div class="card">
-        <h3><span class="section-icon icon-history">📜</span> Complaint History</h3>
-        <div id="complaints-empty" class="empty" style="display:none">
-          <span class="empty-icon">🛠️</span>
-          <p>No complaints filed yet</p>
+        <!-- Stats -->
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-icon purple">📋</div>
+            <div class="stat-info"><h4 id="stat-leaves">—</h4><p>Total Leaves</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info"><h4 id="stat-approved">—</h4><p>Approved</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⏳</div>
+            <div class="stat-info"><h4 id="stat-pending">—</h4><p>Pending</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">🛠️</div>
+            <div class="stat-info"><h4 id="stat-complaints">—</h4><p>Complaints</p></div>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Type</th><th>Issue</th><th>Status</th><th>Filed On</th></tr>
-            </thead>
-            <tbody id="complaints-tbody"></tbody>
-          </table>
+
+        <!-- Profile Tab -->
+        <div id="tab-profile" class="tab-content active">
+          <div class="card">
+            <h3><span class="section-icon icon-profile">👤</span> My Profile</h3>
+            <div id="student-profile" class="profile-grid">
+              <!-- skeleton -->
+              <div class="profile-item"><div class="skeleton-cell w-40" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-80" style="height:16px;border-radius:4px"></div></div>
+              <div class="profile-item"><div class="skeleton-cell w-40" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-80" style="height:16px;border-radius:4px"></div></div>
+              <div class="profile-item"><div class="skeleton-cell w-30" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-60" style="height:16px;border-radius:4px"></div></div>
+              <div class="profile-item"><div class="skeleton-cell w-30" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-60" style="height:16px;border-radius:4px"></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon icon-warden">🧑‍🏫</span> Warden Information</h3>
+            <div id="warden-info" class="profile-grid"></div>
+          </div>
+        </div>
+
+        <!-- Apply Leave Tab -->
+        <div id="tab-apply-leave" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-leave">✍️</span> Apply for Leave</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Leave Type</label>
+                <select id="leave-type">
+                  <option value="Sick Leave">🤒 Sick Leave</option>
+                  <option value="Personal Leave">👤 Personal Leave</option>
+                  <option value="Emergency Leave">🚨 Emergency Leave</option>
+                  <option value="Vacation Leave">✈️ Vacation Leave</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Reason</label>
+                <input type="text" id="leave-reason" placeholder="Brief reason for leave">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>From Date</label>
+                <input type="date" id="leave-from">
+              </div>
+              <div class="form-group">
+                <label>To Date</label>
+                <input type="date" id="leave-to">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-apply-leave" onclick="applyLeave()">✍️ Submit Leave Request</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Leaves Tab -->
+        <div id="tab-my-leaves" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-history">📄</span> Leave History</h3>
+            <div id="leaves-empty" class="empty" style="display:none">
+              <span class="empty-icon">📋</span>
+              <p>No leave records found</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="leaves-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complaints Tab -->
+        <div id="tab-complaints" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-complaint">🛠️</span> File a Complaint</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Complaint Type</label>
+                <select id="complaint-type">
+                  <option value="Maintenance">🔧 Maintenance</option>
+                  <option value="Electrical">⚡ Electrical</option>
+                  <option value="Plumbing">🚿 Plumbing</option>
+                  <option value="Cleanliness">🧹 Cleanliness</option>
+                  <option value="Food">🍽️ Food</option>
+                  <option value="Other">📝 Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Attachment (optional)</label>
+                <input type="file" id="complaint-file" accept="image/*,.pdf">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Describe the Issue</label>
+              <textarea id="complaint-issue" placeholder="Describe your complaint in detail..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-submit-complaint" onclick="submitComplaint()">🚀 Submit Complaint</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3><span class="section-icon icon-history">📜</span> Complaint History</h3>
+            <div id="complaints-empty" class="empty" style="display:none">
+              <span class="empty-icon">🛠️</span>
+              <p>No complaints filed yet</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Type</th><th>Issue</th><th>Status</th><th>Filed On</th></tr>
+                </thead>
+                <tbody id="complaints-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
-  <script src="/js/common.js"></script>
+  <script src="/js/common.js?v=2"></script>
   <script>
     requireAuth(['student']);
     const user = getUser();
     document.getElementById('nav-user').textContent = user.name;
     document.getElementById('welcome-name').textContent = user.name;
+    document.getElementById('user-avatar').textContent = user.name ? user.name.charAt(0).toUpperCase() : 'S';
+    document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
     let studentId = null;
 
     (async () => {
       try {
+        showSkeletons('leaves-tbody', 6);
+        showSkeletons('complaints-tbody', 4);
         const res = await apiCall(`/api/profile/student-by-email/${encodeURIComponent(user.email)}`);
         studentId = res.student_id || res.id;
         loadProfile();
         loadLeaves();
         loadComplaints();
         loadStats();
-      } catch (e) { console.error('Init error:', e); }
+      } catch (e) {
+        showToast('Failed to load profile data. Please refresh.', 'error');
+        console.error('Init error:', e);
+      }
     })();
 
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function switchTab(tab, navEl) {
+      document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      (navEl || document.getElementById('nav-' + tab)).classList.add('active');
       document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('page-title').textContent =
+        { profile: 'Profile', 'apply-leave': 'Apply Leave', 'my-leaves': 'My Leaves', complaints: 'Complaints' }[tab] || 'Dashboard';
+      if (window.innerWidth <= 1024) toggleSidebar();
     }
 
     async function loadProfile() {
       try {
-        const s = await apiCall(`/api/profile/student/${studentId}`);
+        const data = await apiCall(`/api/profile/student/${studentId}`);
+        const s = data.student;
+        const w = data.warden;
         document.getElementById('student-profile').innerHTML = `
           <div class="profile-item"><span class="label">Name</span><span class="value">${s.name || '-'}</span></div>
           <div class="profile-item"><span class="label">Email</span><span class="value">${s.email || '-'}</span></div>
-          <div class="profile-item"><span class="label">Room No</span><span class="value">${s.room_no || '-'}</span></div>
-          <div class="profile-item"><span class="label">Hostel Block</span><span class="value">${s.hostel_block || '-'}</span></div>
-          <div class="profile-item"><span class="label">Phone</span><span class="value">${s.phone || '-'}</span></div>
-          <div class="profile-item"><span class="label">Parent Contact</span><span class="value">${s.parent_contact || '-'}</span></div>
+          <div class="profile-item"><span class="label">Room No</span><span class="value">${s.room || '-'}</span></div>
+          <div class="profile-item"><span class="label">Hostel</span><span class="value">${s.hostel || '-'}</span></div>
+          <div class="profile-item"><span class="label">Phone</span><span class="value">${s.contact || '-'}</span></div>
+          <div class="profile-item"><span class="label">Department</span><span class="value">${s.department || '-'}</span></div>
+          <div class="profile-item"><span class="label">Year</span><span class="value">${s.year || '-'}</span></div>
+          <div class="profile-item"><span class="label">Student ID</span><span class="value">${s.student_id || '-'}</span></div>
         `;
-        document.getElementById('warden-info').innerHTML = `
-          <div class="profile-item"><span class="label">Warden Name</span><span class="value">${s.warden_name || '-'}</span></div>
-          <div class="profile-item"><span class="label">Warden Email</span><span class="value">${s.warden_email || '-'}</span></div>
-        `;
+        document.getElementById('warden-info').innerHTML = w ? `
+          <div class="profile-item"><span class="label">Warden Name</span><span class="value">${w.name || '-'}</span></div>
+          <div class="profile-item"><span class="label">Warden Email</span><span class="value">${w.email || '-'}</span></div>
+          <div class="profile-item"><span class="label">Warden Contact</span><span class="value">${w.contact || '-'}</span></div>
+          <div class="profile-item"><span class="label">Floor</span><span class="value">${w.floor || '-'}</span></div>
+        ` : '<p style="color:var(--text-muted);font-size:0.85rem">No warden assigned</p>';
       } catch (e) { console.error(e); }
     }
 
     async function applyLeave() {
+      const btn = document.getElementById('btn-apply-leave');
       const leave_type = document.getElementById('leave-type').value;
       const reason = document.getElementById('leave-reason').value.trim();
       const from_date = document.getElementById('leave-from').value;
       const to_date = document.getElementById('leave-to').value;
-      if (!reason || !from_date || !to_date) return showAlert('leave-alert', 'Please fill all fields', 'error');
+      if (!reason || !from_date || !to_date) return showToast('Please fill in all required fields', 'error');
+      if (new Date(to_date) < new Date(from_date)) return showToast('To date cannot be before From date', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
       try {
         await apiCall(`/api/leave/apply/${studentId}`, {
           method: 'POST',
           body: JSON.stringify({ leave_type, reason, from_date, to_date })
         });
-        showAlert('leave-alert', 'Leave applied successfully!', 'success');
+        showToast('Leave request submitted successfully!', 'success');
         document.getElementById('leave-reason').value = '';
         document.getElementById('leave-from').value = '';
         document.getElementById('leave-to').value = '';
-        loadLeaves();
-        loadStats();
-      } catch (e) { showAlert('leave-alert', e.message, 'error'); }
+        loadLeaves(); loadStats();
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
     }
 
     async function loadLeaves() {
+      showSkeletons('leaves-tbody', 6);
       try {
         const leaves = await apiCall(`/api/leave/student/${studentId}`);
         const tbody = document.getElementById('leaves-tbody');
         const empty = document.getElementById('leaves-empty');
-        if (!leaves.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        if (!leaves.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
         empty.style.display = 'none';
         tbody.innerHTML = leaves.map(l => `<tr>
           <td>${l.leave_type}</td><td>${l.reason}</td>
           <td>${formatDate(l.from_date)}</td><td>${formatDate(l.to_date)}</td>
           <td>${statusBadge(l.status)}</td>
-          <td>${l.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="deleteLeave(${l.leave_id})">Cancel</button>` : '-'}</td>
+          <td>${l.status === 'pending' ? `<button class="btn btn-danger btn-sm" onclick="deleteLeave(${l.id}, this)">✕ Cancel</button>` : '—'}</td>
         </tr>`).join('');
       } catch (e) { console.error(e); }
     }
 
-    async function deleteLeave(id) {
-      if (!confirm('Cancel this leave request?')) return;
+    async function deleteLeave(id, btn) {
+      const ok = await confirmDialog('This will cancel the leave request. This action cannot be undone.', 'Cancel Leave Request?');
+      if (!ok) return;
+      btn.classList.add('loading'); btn.disabled = true;
       try {
         await apiCall(`/api/leave/delete/${id}`, { method: 'DELETE' });
-        loadLeaves();
-        loadStats();
-      } catch (e) { alert(e.message); }
+        showToast('Leave request cancelled', 'success');
+        loadLeaves(); loadStats();
+      } catch (e) { showToast(e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
     }
 
     async function submitComplaint() {
+      const btn = document.getElementById('btn-submit-complaint');
       const type = document.getElementById('complaint-type').value;
       const description = document.getElementById('complaint-issue').value.trim();
       const fileInput = document.getElementById('complaint-file');
-      if (!description) return showAlert('complaint-alert', 'Please describe the issue', 'error');
+      if (!description) return showToast('Please describe the issue', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
       try {
         const fd = new FormData();
         fd.append('complaint_type', type);
-        fd.append('description', description);
-        if (fileInput.files[0]) fd.append('image', fileInput.files[0]);
-        await apiCall(`/api/complaints/add/${user.user_id}`, { method: 'POST', body: fd, isFormData: true });
-        showAlert('complaint-alert', 'Complaint submitted!', 'success');
+        fd.append('issue', description);
+        if (fileInput.files[0]) fd.append('file', fileInput.files[0]);
+        await apiCall(`/api/complaints/add/${studentId}`, { method: 'POST', body: fd });
+        showToast('Complaint submitted successfully!', 'success');
         document.getElementById('complaint-issue').value = '';
         fileInput.value = '';
-        loadComplaints();
-        loadStats();
-      } catch (e) { showAlert('complaint-alert', e.message, 'error'); }
+        loadComplaints(); loadStats();
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
     }
 
     async function loadComplaints() {
+      showSkeletons('complaints-tbody', 4);
       try {
-        const list = await apiCall(`/api/complaints/student/${user.user_id}`);
+        const list = await apiCall(`/api/complaints/student/${studentId}`);
         const tbody = document.getElementById('complaints-tbody');
         const empty = document.getElementById('complaints-empty');
-        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
         empty.style.display = 'none';
         tbody.innerHTML = list.map(c => `<tr>
-          <td>${c.complaint_type}</td><td>${c.description}</td>
+          <td>${c.complaint_type}</td><td>${c.issue}</td>
           <td>${statusBadge(c.status)}</td><td>${formatDate(c.created_at)}</td>
         </tr>`).join('');
       } catch (e) { console.error(e); }
@@ -319,7 +376,7 @@
         document.getElementById('stat-leaves').textContent = leaves.length;
         document.getElementById('stat-approved').textContent = leaves.filter(l => l.status === 'approved').length;
         document.getElementById('stat-pending').textContent = leaves.filter(l => l.status === 'pending').length;
-        const complaints = await apiCall(`/api/complaints/student/${user.user_id}`);
+        const complaints = await apiCall(`/api/complaints/student/${studentId}`);
         document.getElementById('stat-complaints').textContent = complaints.length;
       } catch (e) { console.error(e); }
     }

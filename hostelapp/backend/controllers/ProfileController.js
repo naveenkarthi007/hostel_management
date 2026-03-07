@@ -5,12 +5,16 @@ exports.getStudentProfile = (req, res) => {
   const { studentId } = req.params;
 
   // Step 1: Get Student details (including warden_id)
-  const studentSql = `
-    SELECT  name, email, student_id, contact, department, year,
-           grouptype, hostel, room, warden_id
-    FROM students
-    WHERE student_id = ?
-  `;
+  // Support lookup by student_id (string) or by numeric id
+  const isNumeric = /^\d+$/.test(studentId);
+  const studentSql = isNumeric
+    ? `SELECT name, email, student_id, contact, department, year,
+             grouptype, hostel, room, warden_id
+       FROM students WHERE id = ?`
+    : `SELECT name, email, student_id, contact, department, year,
+             grouptype, hostel, room, warden_id
+       FROM students WHERE student_id = ?`;
+
 
   db.query(studentSql, [studentId], (err, studentResults) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -29,7 +33,7 @@ exports.getStudentProfile = (req, res) => {
 
     // Step 2: Get Warden details using warden_id
     const wardenSql = `
-      SELECT id, name,warden_id, contact
+      SELECT id, name, email, warden_id, contact
       FROM warden
       WHERE warden_id = ?
     `;
@@ -72,10 +76,17 @@ exports.getWardenProfile = (req, res) => {
 // Get student_id by email
 exports.getStudentByEmail = (req, res) => {
   const email = decodeURIComponent(req.params.email);
-  db.query('SELECT student_id FROM students WHERE email = ?', [email], (err, results) => {
+  db.query('SELECT id, student_id FROM students WHERE email = ?', [email], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0) return res.status(404).json({ error: 'Student not found' });
-    res.json({ student_id: results[0].student_id });
+    const row = results[0];
+    // Auto-generate student_id if it was never set
+    if (!row.student_id) {
+      const generated = 'STU' + String(row.id).padStart(5, '0');
+      db.query('UPDATE students SET student_id = ? WHERE id = ? AND student_id IS NULL', [generated, row.id], () => {});
+      return res.json({ id: row.id, student_id: generated });
+    }
+    res.json({ id: row.id, student_id: row.student_id });
   });
 };
 

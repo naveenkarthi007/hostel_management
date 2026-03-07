@@ -28,7 +28,6 @@ exports.register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const selectedRoleId = role_id || 1;
 
     const [result] = await pool.query(
@@ -37,11 +36,27 @@ exports.register = async (req, res) => {
     );
 
     const [roleData] = await pool.query('SELECT role_name FROM roles WHERE id = ?', [selectedRoleId]);
+    const roleName = roleData[0].role_name;
+
+    // Auto-create profile row based on role so dashboard lookups succeed
+    if (selectedRoleId === 1 || roleName === 'student') {
+      const generatedStudentId = 'STU' + String(result.insertId).padStart(5, '0');
+      await pool.query(
+        'INSERT INTO students (name, email, contact, student_id) VALUES (?, ?, ?, ?)',
+        [name, email, 0, generatedStudentId]
+      ).catch(() => {});
+    } else if (selectedRoleId === 2 || roleName === 'warden') {
+      // Insert into warden table
+      await pool.query(
+        'INSERT INTO warden (name, email) VALUES (?, ?)',
+        [name, email]
+      ).catch(() => {});
+    }
 
     const user = {
       id: result.insertId,
       email,
-      role: roleData[0].role_name,
+      role: roleName,
     };
 
     const token = generateToken(user);
@@ -52,6 +67,7 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
 
 exports.login = async (req, res) => {
   try {

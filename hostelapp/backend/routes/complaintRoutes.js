@@ -3,10 +3,11 @@ const multer = require('multer');
 const path = require('path');
 const router = express.Router();
 const complaintController = require('../controllers/complaintController');
+const { verifyToken: verifyJWT } = require('../middleware/auth.middleware');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Save to "uploads" folder
+    cb(null, path.join(__dirname, '..', 'uploads'));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -26,9 +27,9 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter });
 
-router.post('/add/:studentId', upload.single('file'), complaintController.addComplaint);
-router.get('/all', complaintController.getAllComplaints);
-router.put('/:id/status', complaintController.updateComplaintStatus);
-router.get('/student/:studentId', complaintController.getComplaintsByStudent);
+router.post('/add/:studentId', verifyJWT, upload.single('file'), complaintController.addComplaint);
+router.get('/all', verifyJWT, complaintController.getAllComplaints);
+router.put('/:id/status', verifyJWT, complaintController.updateComplaintStatus);
+router.get('/student/:studentId', verifyJWT, complaintController.getComplaintsByStudent);
 
 module.exports = router;

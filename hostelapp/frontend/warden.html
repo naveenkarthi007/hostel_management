@@ -3,180 +3,226 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Warden Dashboard — Hostel Management</title>
+  <title>Bannari Amman College — Warden Dashboard</title>
+  <meta name="description" content="Bannari Amman College Warden portal to manage student leaves, apply for own leave, and view profile">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=2">
   <style>
-    :root {
-      --primary: #0d9488;
-      --primary-dark: #0f766e;
-      --primary-darker: #115e59;
-      --primary-light: #f0fdfa;
-      --primary-50: #f0fdfa;
-      --primary-100: #ccfbf1;
-      --primary-glow: rgba(13, 148, 136, 0.18);
-      --primary-glow-strong: rgba(13, 148, 136, 0.35);
-    }
-    .navbar { background: linear-gradient(135deg, #0d9488 0%, #115e59 100%); box-shadow: 0 4px 30px rgba(13,148,136,0.25); }
-    .welcome-banner { background: linear-gradient(135deg, #0d9488 0%, #0f766e 50%, #14b8a6 100%); }
-    .tab.active { color: #0d9488; background: #f0fdfa; }
+    /* Warden accent: Navy gradient for welcome banner & active nav */
+    .welcome-banner { background: linear-gradient(135deg, #1f3654 0%, #27456B 100%); }
+    .nav-item.active { background: rgba(39, 69, 107, 0.15); color: #fff; }
+    .nav-item.active::before { background: #27456B; }
+    .sidebar-brand .brand-icon { background: linear-gradient(135deg, #27456B, #375985); }
     .stat-cards { grid-template-columns: repeat(3, 1fr); }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <h1><span class="logo-icon">🛡️</span> Warden Portal</h1>
-    <div class="nav-right">
-      <span class="user-info" id="nav-user"></span>
-      <button class="btn-logout" onclick="logout()">Logout</button>
-    </div>
-  </nav>
-
-  <div class="dashboard">
-    <!-- Welcome -->
-    <div class="welcome-banner">
-      <div class="welcome-top">
-        <div class="welcome-avatar">🛡️</div>
-        <div class="welcome-text">
-          <h2>Welcome, <span id="welcome-name">Warden</span></h2>
-          <p>Review student leaves, manage your own leaves, and view your profile</p>
-        </div>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">🛡️</span>
+        <span class="brand-text">BIT Hostels</span>
       </div>
-    </div>
 
-    <!-- Stats -->
-    <div class="stat-cards">
-      <div class="stat-card">
-        <div class="stat-icon teal">📋</div>
-        <div class="stat-info"><h4 id="stat-student-leaves">0</h4><p>Student Requests</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon orange">⏳</div>
-        <div class="stat-info"><h4 id="stat-pending">0</h4><p>Pending Approval</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green">🗓️</div>
-        <div class="stat-info"><h4 id="stat-my-leaves">0</h4><p>My Leaves</p></div>
-      </div>
-    </div>
+      <div class="sidebar-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="nav-profile" onclick="switchTab('profile', this)">
+          <span class="nav-icon">👤</span> Profile
+        </button>
+        <button class="nav-item" id="nav-student-leaves" onclick="switchTab('student-leaves', this)">
+          <span class="nav-icon">📋</span> Student Leaves
+        </button>
+        <button class="nav-item" id="nav-apply-leave" onclick="switchTab('apply-leave', this)">
+          <span class="nav-icon">✍️</span> Apply Leave
+        </button>
+        <button class="nav-item" id="nav-my-leaves" onclick="switchTab('my-leaves', this)">
+          <span class="nav-icon">🗓️</span> My Leaves
+        </button>
+      </nav>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('profile')"><span class="tab-icon">👤</span> Profile</button>
-      <button class="tab" onclick="switchTab('student-leaves')"><span class="tab-icon">📋</span> Student Leaves</button>
-      <button class="tab" onclick="switchTab('apply-leave')"><span class="tab-icon">✍️</span> Apply Leave</button>
-      <button class="tab" onclick="switchTab('my-leaves')"><span class="tab-icon">🗓️</span> My Leaves</button>
-    </div>
-
-    <!-- Profile Tab -->
-    <div id="tab-profile" class="tab-content active">
-      <div class="card">
-        <h3><span class="section-icon icon-profile">👤</span> My Profile</h3>
-        <div id="warden-profile" class="profile-grid"></div>
-      </div>
-    </div>
-
-    <!-- Student Leaves Tab -->
-    <div id="tab-student-leaves" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-students">📋</span> Student Leave Requests</h3>
-        <div id="student-leaves-empty" class="empty" style="display:none">
-          <span class="empty-icon">📋</span>
-          <p>No student leave requests found</p>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Student</th><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Status</th><th>Action</th></tr>
-            </thead>
-            <tbody id="student-leaves-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Apply Leave Tab -->
-    <div id="tab-apply-leave" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-leave">✍️</span> Apply for Leave</h3>
-        <div id="wleave-alert" class="alert"></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Leave Type</label>
-            <select id="wleave-type">
-              <option value="Sick Leave">Sick Leave</option>
-              <option value="Personal Leave">Personal Leave</option>
-              <option value="Emergency Leave">Emergency Leave</option>
-              <option value="Vacation Leave">Vacation Leave</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Reason</label>
-            <input type="text" id="wleave-reason" placeholder="Brief reason for leave">
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar" id="user-avatar" style="background: linear-gradient(135deg, #27456B, #375985)">W</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="nav-user"></div>
+            <div class="sidebar-user-role">Warden</div>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>From Date</label>
-            <input type="date" id="wleave-from">
-          </div>
-          <div class="form-group">
-            <label>To Date</label>
-            <input type="date" id="wleave-to">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Alternate Warden Name</label>
-            <input type="text" id="wleave-alt-name" placeholder="Name of alternate warden">
-          </div>
-          <div class="form-group">
-            <label>Alternate Contact</label>
-            <input type="text" id="wleave-alt-contact" placeholder="Contact number">
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" onclick="applyWardenLeave()" style="width:auto">Submit Leave Request</button>
-        </div>
+        <button class="btn-logout" onclick="logout()">⏻ Sign Out</button>
       </div>
-    </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <!-- My Leaves Tab -->
-    <div id="tab-my-leaves" class="tab-content">
-      <div class="card">
-        <h3><span class="section-icon icon-history">🗓️</span> My Leave History</h3>
-        <div id="my-leaves-info"></div>
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="content-header">
+        <div class="content-header-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+          <h2 id="page-title">Warden Dashboard</h2>
+        </div>
+        <div class="header-right">
+          <span class="header-badge" id="header-date"></span>
+        </div>
+      </header>
+
+      <div class="dashboard">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <div class="welcome-top">
+            <div class="welcome-avatar">🛡️</div>
+            <div class="welcome-text">
+              <h2>Welcome, <span id="welcome-name">Warden</span></h2>
+              <p>Review student leaves, manage your own leaves, and view your profile</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-icon teal">📋</div>
+            <div class="stat-info"><h4 id="stat-student-leaves">—</h4><p>Student Requests</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⏳</div>
+            <div class="stat-info"><h4 id="stat-pending">—</h4><p>Pending Approval</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🗓️</div>
+            <div class="stat-info"><h4 id="stat-my-leaves">—</h4><p>My Leaves</p></div>
+          </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="tab-profile" class="tab-content active">
+          <div class="card">
+            <h3><span class="section-icon icon-profile">👤</span> My Profile</h3>
+            <div id="warden-profile" class="profile-grid">
+              <div class="profile-item"><div class="skeleton-cell w-40" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-80" style="height:16px;border-radius:4px"></div></div>
+              <div class="profile-item"><div class="skeleton-cell w-40" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-80" style="height:16px;border-radius:4px"></div></div>
+              <div class="profile-item"><div class="skeleton-cell w-30" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-60" style="height:16px;border-radius:4px"></div></div>
+              <div class="profile-item"><div class="skeleton-cell w-30" style="height:12px;margin-bottom:6px;border-radius:4px"></div><div class="skeleton-cell w-60" style="height:16px;border-radius:4px"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Leaves Tab -->
+        <div id="tab-student-leaves" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-students">📋</span> Student Leave Requests</h3>
+            <div id="student-leaves-empty" class="empty" style="display:none">
+              <span class="empty-icon">📋</span>
+              <p>No student leave requests found</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Student</th><th>Type</th><th>Reason</th><th>From</th><th>To</th><th>Status</th><th>Action</th></tr>
+                </thead>
+                <tbody id="student-leaves-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Apply Leave Tab -->
+        <div id="tab-apply-leave" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-leave">✍️</span> Apply for Leave</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Leave Type</label>
+                <select id="wleave-type">
+                  <option value="Sick Leave">🤒 Sick Leave</option>
+                  <option value="Personal Leave">👤 Personal Leave</option>
+                  <option value="Emergency Leave">🚨 Emergency Leave</option>
+                  <option value="Vacation Leave">✈️ Vacation Leave</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Reason</label>
+                <input type="text" id="wleave-reason" placeholder="Brief reason for leave">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>From Date</label>
+                <input type="date" id="wleave-from">
+              </div>
+              <div class="form-group">
+                <label>To Date</label>
+                <input type="date" id="wleave-to">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Alternate Warden Name</label>
+                <input type="text" id="wleave-alt-name" placeholder="Name of alternate warden">
+              </div>
+              <div class="form-group">
+                <label>Alternate Contact</label>
+                <input type="text" id="wleave-alt-contact" placeholder="Contact number">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-warden-leave" onclick="applyWardenLeave()">✍️ Submit Leave Request</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Leaves Tab -->
+        <div id="tab-my-leaves" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon icon-history">🗓️</span> My Leave History</h3>
+            <div id="my-leaves-info"></div>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </main>
   </div>
 
-  <script src="/js/common.js"></script>
+  <script src="/js/common.js?v=2"></script>
   <script>
     requireAuth(['warden']);
     const user = getUser();
     document.getElementById('nav-user').textContent = user.name;
     document.getElementById('welcome-name').textContent = user.name;
+    document.getElementById('user-avatar').textContent = user.name ? user.name.charAt(0).toUpperCase() : 'W';
+    document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
     let wardenId = null;
 
     (async () => {
       try {
+        showSkeletons('student-leaves-tbody', 7);
         const res = await apiCall(`/api/profile/warden-by-email/${encodeURIComponent(user.email)}`);
         wardenId = res.warden_id || res.id;
         loadProfile();
         loadStudentLeaves();
         loadMyLeaves();
         loadStats();
-      } catch (e) { console.error('Init error:', e); }
+      } catch (e) {
+        showToast('Failed to load profile data. Please refresh.', 'error');
+        console.error('Init error:', e);
+      }
     })();
 
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function switchTab(tab, navEl) {
+      document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      (navEl || document.getElementById('nav-' + tab)).classList.add('active');
       document.getElementById('tab-' + tab).classList.add('active');
+      const titles = { profile: 'My Profile', 'student-leaves': 'Student Leaves', 'apply-leave': 'Apply Leave', 'my-leaves': 'My Leave History' };
+      document.getElementById('page-title').textContent = titles[tab] || 'Warden Dashboard';
+      if (window.innerWidth <= 1024) toggleSidebar();
     }
 
     async function loadProfile() {
@@ -185,13 +231,17 @@
         document.getElementById('warden-profile').innerHTML = `
           <div class="profile-item"><span class="label">Name</span><span class="value">${w.name || '-'}</span></div>
           <div class="profile-item"><span class="label">Email</span><span class="value">${w.email || '-'}</span></div>
-          <div class="profile-item"><span class="label">Phone</span><span class="value">${w.phone || '-'}</span></div>
-          <div class="profile-item"><span class="label">Block</span><span class="value">${w.block_assigned || '-'}</span></div>
+          <div class="profile-item"><span class="label">Phone</span><span class="value">${w.contact || '-'}</span></div>
+          <div class="profile-item"><span class="label">Hostel</span><span class="value">${w.hostel || '-'}</span></div>
+          <div class="profile-item"><span class="label">Department</span><span class="value">${w.department || '-'}</span></div>
+          <div class="profile-item"><span class="label">Floor</span><span class="value">${w.floor || '-'}</span></div>
+          <div class="profile-item"><span class="label">Warden ID</span><span class="value">${w.warden_id || '-'}</span></div>
         `;
       } catch (e) { console.error(e); }
     }
 
     async function loadStudentLeaves() {
+      showSkeletons('student-leaves-tbody', 7);
       try {
         const leaves = await apiCall('/api/leave/all');
         const tbody = document.getElementById('student-leaves-tbody');
@@ -199,51 +249,53 @@
         if (!leaves.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
         empty.style.display = 'none';
         tbody.innerHTML = leaves.map(l => `<tr>
-          <td>${l.student_name || l.name || '-'}</td>
+          <td><strong>${l.student_name || l.name || '-'}</strong></td>
           <td>${l.leave_type}</td><td>${l.reason}</td>
           <td>${formatDate(l.from_date)}</td><td>${formatDate(l.to_date)}</td>
           <td>${statusBadge(l.status)}</td>
           <td>${l.status === 'pending' ? `<div class="action-group">
-            <button class="btn btn-success btn-sm" onclick="updateLeave(${l.leave_id},'approved')">Approve</button>
-            <button class="btn btn-danger btn-sm" onclick="updateLeave(${l.leave_id},'rejected')">Reject</button>
-          </div>` : '-'}</td>
+            <button class="btn btn-success btn-sm" onclick="updateLeave(${l.id},'approved', this)">✔ Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="updateLeave(${l.id},'rejected', this)">✕ Reject</button>
+          </div>` : '—'}</td>
         </tr>`).join('');
       } catch (e) { console.error(e); }
     }
 
-    async function updateLeave(id, status) {
+    async function updateLeave(id, status, btn) {
+      const label = status === 'approved' ? 'approve' : 'reject';
+      const ok = await confirmDialog(`Are you sure you want to ${label} this leave request?`, 'Confirm Action');
+      if (!ok) return;
+      btn.classList.add('loading'); btn.disabled = true;
       try {
         await apiCall(`/api/leave/warden-approval/${id}`, {
           method: 'PUT',
           body: JSON.stringify({ status })
         });
-        loadStudentLeaves();
-        loadStats();
-      } catch (e) { alert(e.message); }
+        showToast(`Leave request ${status}!`, 'success');
+        loadStudentLeaves(); loadStats();
+      } catch (e) { showToast(e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
     }
 
     async function applyWardenLeave() {
+      const btn = document.getElementById('btn-warden-leave');
       const leave_type = document.getElementById('wleave-type').value;
       const reason = document.getElementById('wleave-reason').value.trim();
       const from_date = document.getElementById('wleave-from').value;
       const to_date = document.getElementById('wleave-to').value;
       const alt_warden_name = document.getElementById('wleave-alt-name').value.trim();
       const alt_warden_contact = document.getElementById('wleave-alt-contact').value.trim();
-      if (!reason || !from_date || !to_date) return showAlert('wleave-alert', 'Please fill all required fields', 'error');
+      if (!reason || !from_date || !to_date) return showToast('Please fill in all required fields', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
       try {
         await apiCall(`/api/warden-leave/apply/${wardenId}`, {
           method: 'POST',
           body: JSON.stringify({ leave_type, reason, from_date, to_date, alt_warden_name, alt_warden_contact })
         });
-        showAlert('wleave-alert', 'Leave applied successfully!', 'success');
-        document.getElementById('wleave-reason').value = '';
-        document.getElementById('wleave-from').value = '';
-        document.getElementById('wleave-to').value = '';
-        document.getElementById('wleave-alt-name').value = '';
-        document.getElementById('wleave-alt-contact').value = '';
-        loadMyLeaves();
-        loadStats();
-      } catch (e) { showAlert('wleave-alert', e.message, 'error'); }
+        showToast('Leave request submitted successfully!', 'success');
+        ['wleave-reason','wleave-from','wleave-to','wleave-alt-name','wleave-alt-contact'].forEach(id => document.getElementById(id).value = '');
+        loadMyLeaves(); loadStats();
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
     }
 
     async function loadMyLeaves() {
@@ -260,7 +312,7 @@
           <tbody>${mine.map(l => `<tr>
             <td>${l.leave_type}</td><td>${l.reason}</td>
             <td>${formatDate(l.from_date)}</td><td>${formatDate(l.to_date)}</td>
-            <td>${l.alt_warden_name || '-'}</td><td>${statusBadge(l.status)}</td>
+            <td>${l.alternate_warden_name || '—'}</td><td>${statusBadge(l.status)}</td>
           </tr>`).join('')}</tbody>
         </table></div>`;
       } catch (e) { console.error(e); }

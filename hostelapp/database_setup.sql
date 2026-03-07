@@ -88,7 +88,7 @@ CREATE TABLE leave_requests (
     from_date DATE,
     to_date DATE,
     reason TEXT,
-    leave_type ENUM('Leave', 'OD', 'Internal OD', 'Internal Training') NOT NULL,
+    leave_type ENUM('Sick Leave', 'Personal Leave', 'Emergency Leave', 'Vacation Leave') NOT NULL,
     status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students(student_id),
@@ -102,7 +102,7 @@ CREATE TABLE student_leaves (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id VARCHAR(20),
     warden_id VARCHAR(20),
-    leave_type ENUM('Leave', 'OD', 'Internal OD', 'Internal Training') NOT NULL,
+    leave_type ENUM('Sick Leave', 'Personal Leave', 'Emergency Leave', 'Vacation Leave') NOT NULL,
     from_date DATE,
     to_date DATE,
     from_time TIME,
@@ -138,13 +138,13 @@ CREATE TABLE warden_leave_requests (
 -- ============================================
 CREATE TABLE complaints (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    student_id INT,
+    student_id VARCHAR(20),
     complaint_type VARCHAR(50),
     filepath VARCHAR(255),
     issue TEXT,
     status ENUM('pending', 'assigned', 'resolved') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (student_id) REFERENCES students(id)
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
 );
 
 -- ============================================
