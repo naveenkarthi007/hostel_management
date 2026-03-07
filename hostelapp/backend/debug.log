@@ -1,0 +1,12 @@
+GLOBAL ERROR: Unexpected field
+MulterError: Unexpected field
+    at wrappedFileFilter (E:\Hostel\hostelapp\backend\node_modules\multer\index.js:41:19)
+    at Multipart.<anonymous> (E:\Hostel\hostelapp\backend\node_modules\multer\lib\make-middleware.js:183:7)
+    at Multipart.emit (node:events:508:28)
+    at HeaderParser.cb (E:\Hostel\hostelapp\backend\node_modules\busboy\lib\types\multipart.js:358:14)
+    at HeaderParser.push (E:\Hostel\hostelapp\backend\node_modules\busboy\lib\types\multipart.js:162:20)
+    at SBMH.ssCb [as _cb] (E:\Hostel\hostelapp\backend\node_modules\busboy\lib\types\multipart.js:394:37)
+    at feed (E:\Hostel\hostelapp\backend\node_modules\streamsearch\lib\sbmh.js:219:14)
+    at SBMH.push (E:\Hostel\hostelapp\backend\node_modules\streamsearch\lib\sbmh.js:104:16)
+    at Multipart._write (E:\Hostel\hostelapp\backend\node_modules\busboy\lib\types\multipart.js:567:19)
+    at writeOrBuffer (node:internal/streams/writable:570:12)

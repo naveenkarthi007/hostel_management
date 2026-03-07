@@ -1,0 +1,91 @@
+name: Hostel Management CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ── Lint & Test ──
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testroot
+          MYSQL_DATABASE: hostel_db_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: cd backend && npm ci
+
+      - name: Run tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_USER: root
+          DB_PASSWORD: testroot
+          DB_NAME: hostel_db_test
+          JWT_SECRET: test-jwt-secret-key-32-characters-long
+          JWT_REFRESH_SECRET: test-refresh-secret-key-32-chars-long
+          NODE_ENV: test
+        run: cd backend && npm test
+
+  # ── Build Docker Image ──
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t hostel-app:${{ github.sha }} .
+
+      - name: Test Docker image
+        run: |
+          docker run -d --name test-app \
+            -e DB_HOST=localhost \
+            -e JWT_SECRET=test-secret-32-chars-minimum-here \
+            -e JWT_REFRESH_SECRET=test-refresh-32-chars-min-here \
+            -p 3000:3000 \
+            hostel-app:${{ github.sha }}
+          sleep 5
+          docker logs test-app
+          docker stop test-app
+
+  # ── Deploy (example for Docker registry push) ──
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy notification
+        run: echo "🚀 Ready to deploy. Add your registry push / SSH deploy / K8s apply steps here."

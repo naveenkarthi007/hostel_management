@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hostel Management — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { background: none; }
+
+    /* ── Split Layout ── */
+    .auth-container {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      min-height: 100vh;
+      animation: none;
+    }
+
+    /* ── Left Branding Panel ── */
+    .auth-hero {
+      background: linear-gradient(155deg, #4338ca 0%, #6366f1 35%, #8b5cf6 65%, #a78bfa 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 56px;
+      position: relative;
+      overflow: hidden;
+      color: white;
+    }
+    .auth-hero .orb {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+    .auth-hero .orb-1 { width: 500px; height: 500px; top: -180px; right: -130px; animation: float 14s ease-in-out infinite; }
+    .auth-hero .orb-2 { width: 350px; height: 350px; bottom: -100px; left: -100px; animation: float 18s ease-in-out infinite reverse; }
+    .auth-hero .orb-3 { width: 160px; height: 160px; top: 50%; left: 60%; opacity: 0.5; animation: float 10s ease-in-out infinite 2s; }
+
+    .hero-content {
+      position: relative; z-index: 1;
+      text-align: center; max-width: 420px;
+    }
+    .hero-logo {
+      width: 88px; height: 88px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem;
+      margin: 0 auto 28px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .hero-content h1 {
+      font-size: 2.2rem; font-weight: 800;
+      letter-spacing: -1px; margin-bottom: 12px;
+      line-height: 1.15;
+    }
+    .hero-content > p {
+      font-size: 1rem; opacity: 0.75; line-height: 1.7;
+      max-width: 340px; margin: 0 auto;
+    }
+
+    .hero-features {
+      margin-top: 44px;
+      display: flex; flex-direction: column; gap: 14px;
+      text-align: left; width: 100%;
+    }
+    .hero-feat {
+      display: flex; align-items: center; gap: 14px;
+      font-size: 0.9rem; font-weight: 500; opacity: 0.9;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+    }
+    .hero-feat:hover { background: rgba(255,255,255,0.14); transform: translateX(4px); }
+    .hero-feat .feat-icon {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.05rem; flex-shrink: 0;
+    }
+    .hero-feat .feat-text strong { display: block; font-weight: 700; margin-bottom: 1px; }
+    .hero-feat .feat-text span { font-size: 0.78rem; opacity: 0.7; }
+
+    /* ── Right Form Panel ── */
+    .auth-form-side {
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px;
+      background: #fafbfc;
+    }
+    .auth-form-side .auth-card {
+      width: 420px;
+      box-shadow: none;
+      border: none;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    .auth-form-side .auth-card h2 { font-size: 1.55rem; text-align: left; }
+    .auth-form-side .auth-card .subtitle { text-align: left; margin-bottom: 30px; }
+    .auth-form-side .auth-tabs { border: 1px solid var(--border); }
+
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 44px; }
+    .toggle-pw {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-size: 1.05rem; color: var(--text-muted); padding: 4px;
+      transition: color var(--t-fast);
+    }
+    .toggle-pw:hover { color: var(--primary); }
+
+    .auth-footer {
+      text-align: center; margin-top: 22px;
+      font-size: 0.82rem; color: var(--text-muted);
+    }
+    .auth-footer a {
+      color: var(--primary); font-weight: 600;
+      text-decoration: none;
+    }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    .auth-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0; color: var(--text-muted); font-size: 0.76rem;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .auth-container { grid-template-columns: 1fr; }
+      .auth-hero { display: none; }
+      .auth-form-side { min-height: 100vh; background: var(--bg); }
+      .auth-form-side .auth-card { width: 440px; }
+      .auth-form-side .auth-card h2 { text-align: center; }
+      .auth-form-side .auth-card .subtitle { text-align: center; }
+    }
+    @media (max-width: 480px) {
+      .auth-form-side .auth-card { width: 100%; padding: 0 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <!-- Left Hero -->
+    <div class="auth-hero">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="hero-content">
+        <!-- <div class="hero-logo"></div> -->
+        <h1>Hostel Management System</h1>
+        <p>Streamline hostel operations with smart leave tracking, complaint management, and role-based dashboards.</p>
+        <div class="hero-features">
+          <div class="hero-feat">
+            <div class="feat-icon">📋</div>
+            <div class="feat-text"><strong>Leave Management</strong><span>Apply, track, and approve leaves with ease</span></div>
+          </div>
+          <div class="hero-feat">
+            <div class="feat-icon">🛠️</div>
+            <div class="feat-text"><strong>Complaint System</strong><span>Report issues and track resolution status</span></div>
+          </div>
+          <div class="hero-feat">
+            <div class="feat-icon">👥</div>
+            <div class="feat-text"><strong>Role Dashboards</strong><span>Student, Warden & Manager portals</span></div>
+          </div>
+          <div class="hero-feat">
+            <div class="feat-icon">✅</div>
+            <div class="feat-text"><strong>Approval Workflow</strong><span>Multi-level approval with real-time updates</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Form -->
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <h2>Welcome back</h2>
+        <p class="subtitle">Sign in to access your dashboard</p>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="showTab('login')">Sign In</button>
+          <button class="auth-tab" onclick="showTab('register')">Create Account</button>
+        </div>
+
+        <!-- Login -->
+        <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
+          <div id="login-alert" class="alert"></div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="login-email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="password-wrap">
+              <input type="password" id="login-password" placeholder="Enter your password">
+              <button type="button" class="toggle-pw" onclick="togglePassword('login-password', this)">👁️</button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Sign In</button>
+          <div class="auth-footer">
+            Don't have an account? <a href="#" onclick="showTab('register')">Create one</a>
+          </div>
+        </form>
+
+        <!-- Register -->
+         <form id="register-form" style="display:none" onsubmit="event.preventDefault(); handleRegister();">
+          <div id="register-alert" class="alert"></div>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="reg-name" placeholder="John Doe">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="reg-email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="password-wrap">
+              <input type="password" id="reg-password" placeholder="Minimum 6 characters">
+              <button type="button" class="toggle-pw" onclick="togglePassword('reg-password', this)">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="reg-role">
+              <option value="1">Student</option>
+              <option value="2">Warden</option>
+              <option value="3">Caretaker</option>
+              <option value="4">Mess Manager</option>
+              <option value="5">Hostel Manager</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Create Account</button>
+          <div class="auth-footer">
+            Already have an account? <a href="#" onclick="showTab('login')">Sign in</a>
+          </div> 
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script>
+    const user = getUser();
+    if (user && getToken()) redirectByRole(user);
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+      else { input.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    function showTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      if (tab === 'login') {
+        document.querySelectorAll('.auth-tab')[0].classList.add('active');
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
+      } else {
+        document.querySelectorAll('.auth-tab')[1].classList.add('active');
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+      }
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!email || !password) return showAlert('login-alert', 'Please fill all fields', 'error');
+      try {
+        const data = await apiCall('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+        saveAuth(data);
+        redirectByRole(data.user);
+      } catch (e) {
+        showAlert('login-alert', e.message, 'error');
+      }
+    }
+
+    async function handleRegister() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const role_id = parseInt(document.getElementById('reg-role').value);
+      if (!name || !email || !password) return showAlert('register-alert', 'Please fill all fields', 'error');
+      try {
+        const data = await apiCall('/api/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ name, email, password, role_id })
+        });
+        saveAuth(data);
+        redirectByRole(data.user);
+      } catch (e) {
+        showAlert('register-alert', e.message, 'error');
+      }
+    }
+
+
+  </script>
+</body>
+</html>

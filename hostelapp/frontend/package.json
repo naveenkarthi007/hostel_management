@@ -1,0 +1,11 @@
+{
+    "name": "hostelapp-frontend",
+    "version": "1.0.0",
+    "description": "Hostel Management System - Frontend",
+    "scripts": {
+        "start": "npx -y live-server --port=5500"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}

@@ -1,0 +1,16 @@
+{
+    "name": "hostelapp",
+    "version": "1.0.0",
+    "description": "Hostel Management System",
+    "scripts": {
+        "start": "npm run start --prefix backend",
+        "dev": "npm run dev --prefix backend",
+        "frontend": "npm start --prefix frontend",
+        "install:backend": "npm install --prefix backend",
+        "install:frontend": "npm install --prefix frontend",
+        "install:all": "npm run install:backend && npm run install:frontend"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}
