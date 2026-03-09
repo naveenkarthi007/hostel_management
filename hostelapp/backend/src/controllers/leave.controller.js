@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const { logAudit } = require('../services/audit.service');
 const { notifyUser } = require('../services/socket.service');
@@ -11,7 +12,7 @@ exports.applyLeave = async (req, res) => {
 
         // Get student's internal ID and warden
         const [students] = await pool.query(
-            'SELECT id, warden_id FROM students WHERE student_id = ?',
+            'SELECT id, student_id as sid, warden_id FROM students WHERE student_id = ?',
             [studentId]
         );
         if (students.length === 0) {
@@ -29,7 +30,7 @@ exports.applyLeave = async (req, res) => {
             `SELECT id FROM leave_requests 
              WHERE student_id = ? AND status IN ('pending', 'approved')
              AND ((from_date <= ? AND to_date >= ?) OR (from_date <= ? AND to_date >= ?))`,
-            [student.id, toDate, fromDate, fromDate, toDate]
+            [student.sid, toDate, fromDate, fromDate, toDate]
         );
 
         if (existing.length > 0) {
@@ -40,7 +41,7 @@ exports.applyLeave = async (req, res) => {
             `INSERT INTO leave_requests 
              (student_id, warden_id, leave_type, from_date, to_date, from_time, to_time, reason)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [student.id, student.warden_id, leaveType, fromDate, toDate, fromTime || null, toTime || null, reason]
+            [student.sid, student.warden_id, leaveType, fromDate, toDate, fromTime || null, toTime || null, reason]
         );
 
         // Notify warden
@@ -70,7 +71,7 @@ exports.applyLeave = async (req, res) => {
 
         res.status(201).json({ message: 'Leave applied successfully.', id: result.insertId });
     } catch (err) {
-        console.error('Apply Leave Error:', err);
+        logger.error('Apply Leave Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -97,7 +98,7 @@ exports.getLeavesByStudent = async (req, res) => {
 
         res.json(leaves);
     } catch (err) {
-        console.error('Get Leaves Error:', err);
+        logger.error('Get Leaves Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -134,7 +135,7 @@ exports.getAllLeaves = async (req, res) => {
             }
         });
     } catch (err) {
-        console.error('Get All Leaves Error:', err);
+        logger.error('Get All Leaves Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -190,7 +191,7 @@ exports.updateLeaveStatus = async (req, res) => {
 
         res.json({ message: `Leave request ${status}.` });
     } catch (err) {
-        console.error('Update Leave Error:', err);
+        logger.error('Update Leave Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -220,7 +221,7 @@ exports.deleteLeave = async (req, res) => {
 
         res.json({ message: 'Leave request deleted.' });
     } catch (err) {
-        console.error('Delete Leave Error:', err);
+        logger.error('Delete Leave Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

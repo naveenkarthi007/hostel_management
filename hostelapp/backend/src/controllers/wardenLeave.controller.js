@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const { logAudit } = require('../services/audit.service');
 const { notifyRole } = require('../services/socket.service');
@@ -67,7 +68,7 @@ exports.applyLeave = async (req, res) => {
 
         res.status(201).json({ message: 'Leave request submitted.' });
     } catch (err) {
-        console.error('Warden Apply Leave Error:', err);
+        logger.error('Warden Apply Leave Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -95,7 +96,7 @@ exports.deleteLeave = async (req, res) => {
 
         res.json({ message: 'Leave request deleted.' });
     } catch (err) {
-        console.error('Delete Warden Leave Error:', err);
+        logger.error('Delete Warden Leave Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -145,7 +146,7 @@ exports.updateLeaveStatus = async (req, res) => {
 
         res.json({ message: `Leave request ${status}.` });
     } catch (err) {
-        console.error('Update Warden Leave Error:', err);
+        logger.error('Update Warden Leave Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -171,7 +172,7 @@ exports.getAllLeaves = async (req, res) => {
 
         res.json(rows);
     } catch (err) {
-        console.error('Get Warden Leaves Error:', err);
+        logger.error('Get Warden Leaves Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

@@ -1,4 +1,5 @@
 const pool = require('../config/db').promise;
+const { logger } = require('../middleware/logger.middleware');
 
 /**
  * Log an auditable action.
@@ -41,7 +42,7 @@ async function logAudit({
         );
     } catch (err) {
         // Audit logging should never crash the main request
-        console.error('Audit log failed:', err.message);
+        logger.error('Audit log failed', { error: err.message });
     }
 }
 

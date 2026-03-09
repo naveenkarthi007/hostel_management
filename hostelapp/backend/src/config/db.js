@@ -3,6 +3,8 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+const { logger } = require('../middleware/logger.middleware');
+
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT) || 3306,
@@ -19,10 +21,10 @@ const pool = mysql.createPool({
 // Test connection on startup
 pool.getConnection((err, connection) => {
     if (err) {
-        console.error('Database connection failed:', err.message);
+        logger.error('Database connection failed', { error: err.message });
         process.exit(1);
     }
-    console.log('✅ MySQL connected');
+    logger.info('✅ MySQL connected');
     connection.release();
 });
 

@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 
 // ── Get Audit Logs ──
@@ -41,7 +42,7 @@ exports.getLogs = async (req, res) => {
             },
         });
     } catch (err) {
-        console.error('Get Audit Logs Error:', err);
+        logger.error('Get Audit Logs Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -70,7 +71,7 @@ exports.getStats = async (req, res) => {
 
         res.json({ byModule, byAction, recentLogins });
     } catch (err) {
-        console.error('Audit Stats Error:', err);
+        logger.error('Audit Stats Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

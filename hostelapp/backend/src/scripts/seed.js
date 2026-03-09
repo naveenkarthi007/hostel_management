@@ -121,9 +121,9 @@ async function seed() {
 
         await pool.query(
             `INSERT IGNORE INTO students 
-             (user_id, student_id, contact, department, year, hostel_id, room_id, warden_id)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, studentId, `98765${String(43210 + i)}`, dept, year, hostelId, roomId, warden[0]?.id || null]
+             (user_id, student_id, contact, department, year, hostel_id, room_id, warden_ref_id, warden_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [userId, studentId, `98765${String(43210 + i)}`, dept, year, hostelId, roomId, warden[0]?.id || null, wardens[wardenIdx].warden_id]
         );
 
         if (roomId) {
@@ -140,7 +140,7 @@ async function seed() {
 
         await pool.query(
             `INSERT INTO leave_requests (student_id, warden_id, leave_type, from_date, to_date, reason)
-             VALUES (?, ?, 'leave', DATE_ADD(CURDATE(), INTERVAL ? DAY), DATE_ADD(CURDATE(), INTERVAL ? DAY), ?)`,
+             VALUES (?, ?, 'Leave', DATE_ADD(CURDATE(), INTERVAL ? DAY), DATE_ADD(CURDATE(), INTERVAL ? DAY), ?)`,
             [s.id, s.warden_id, i + 1, i + 3, `Family function - sample leave ${i + 1}`]
         ).catch(() => {});
     }
@@ -160,12 +160,12 @@ async function seed() {
     // ── 9. Computer Lab Slots ──
     console.log('Creating lab slots...');
     await pool.query(
-        `INSERT IGNORE INTO computerlab_slots (venue, from_time, to_time, slot_date, total_systems, available_systems)
+        `INSERT IGNORE INTO computerlab_slots (venue, from_time, to_time, slot_date, total_systems)
          VALUES 
-         ('Lab A', '09:00', '11:00', CURDATE(), 30, 30),
-         ('Lab A', '11:00', '13:00', CURDATE(), 30, 30),
-         ('Lab B', '14:00', '16:00', CURDATE(), 20, 20),
-         ('Lab A', '09:00', '11:00', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 30, 30)`
+         ('Lab A', '09:00', '11:00', CURDATE(), 30),
+         ('Lab A', '11:00', '13:00', CURDATE(), 30),
+         ('Lab B', '14:00', '16:00', CURDATE(), 20),
+         ('Lab A', '09:00', '11:00', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 30)`
     );
 
     console.log('\n✅ Seed completed successfully!');

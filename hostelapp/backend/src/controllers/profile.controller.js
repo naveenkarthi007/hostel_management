@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 
 // ── Get Student Profile + Warden Details ──
@@ -37,7 +38,7 @@ exports.getStudentProfile = async (req, res) => {
 
         res.json({ student, warden });
     } catch (err) {
-        console.error('Student Profile Error:', err);
+        logger.error('Student Profile Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -63,7 +64,7 @@ exports.getWardenProfile = async (req, res) => {
 
         res.json(wardens[0]);
     } catch (err) {
-        console.error('Warden Profile Error:', err);
+        logger.error('Warden Profile Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -84,7 +85,7 @@ exports.getStudentByEmail = async (req, res) => {
         }
         res.json(results[0]);
     } catch (err) {
-        console.error('Student by email Error:', err);
+        logger.error('Student by email Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -105,7 +106,24 @@ exports.getWardenByEmail = async (req, res) => {
         }
         res.json(results[0]);
     } catch (err) {
-        console.error('Warden by email Error:', err);
+        logger.error('Warden by email Error:', { error: err.message, stack: err.stack });
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+// ── Get all users (admin) ──
+exports.getAllUsers = async (req, res) => {
+    try {
+        const [users] = await pool.query(
+            `SELECT u.id, u.name, u.email, u.is_active, u.last_login_at, r.role_name
+             FROM users u
+             JOIN roles r ON u.role_id = r.id
+             WHERE u.deleted_at IS NULL
+             ORDER BY u.id`
+        );
+        res.json(users);
+    } catch (err) {
+        logger.error('Get all users Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

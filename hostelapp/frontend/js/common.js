@@ -4,7 +4,7 @@ const API = 'http://localhost:3000';
 // AUTH HELPERS
 // ══════════════════════════════════════════
 function saveAuth(data) {
-    localStorage.setItem('token', data.token);
+    localStorage.setItem('token', data.accessToken);
     localStorage.setItem('user', JSON.stringify(data.user));
 }
 function getToken() { return localStorage.getItem('token'); }
@@ -17,7 +17,8 @@ function redirectByRole(user) {
     const role = user.role;
     if (role === 'student') window.location.href = '/student.html';
     else if (role === 'warden') window.location.href = '/warden.html';
-    else if (role === 'hostelmanager' || role === 'caretaker' || role === 'messmanager') window.location.href = '/manager.html';
+    else if (role === 'admin') window.location.href = '/admin.html';
+    else if (role === 'hostelmanager' || role === 'hostel_manager' || role === 'caretaker' || role === 'messmanager' || role === 'mess_manager') window.location.href = '/manager.html';
     else {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

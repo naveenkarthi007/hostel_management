@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const { logAudit } = require('../services/audit.service');
 
@@ -7,7 +8,7 @@ exports.requestMeal = async (req, res) => {
         const { studentId } = req.params;
         const { meal_date, meal_type, request_type, special_notes } = req.body;
 
-        const [students] = await pool.query('SELECT id FROM students WHERE student_id = ?', [studentId]);
+        const [students] = await pool.query('SELECT id, student_id as sid FROM students WHERE student_id = ?', [studentId]);
         if (students.length === 0) {
             return res.status(404).json({ message: 'Student not found.' });
         }
@@ -16,7 +17,7 @@ exports.requestMeal = async (req, res) => {
             `INSERT INTO meal_requests (student_id, meal_date, meal_type, request_type, special_notes)
              VALUES (?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE request_type = VALUES(request_type), special_notes = VALUES(special_notes), status = 'requested'`,
-            [students[0].id, meal_date, meal_type, request_type || 'opt_in', special_notes || null]
+            [students[0].sid, meal_date, meal_type, request_type || 'opt_in', special_notes || null]
         );
 
         await logAudit({
@@ -29,7 +30,7 @@ exports.requestMeal = async (req, res) => {
 
         res.status(201).json({ message: 'Meal request submitted.' });
     } catch (err) {
-        console.error('Meal Request Error:', err);
+        logger.error('Meal Request Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -39,19 +40,19 @@ exports.getByStudent = async (req, res) => {
     try {
         const { studentId } = req.params;
 
-        const [students] = await pool.query('SELECT id FROM students WHERE student_id = ?', [studentId]);
+        const [students] = await pool.query('SELECT id, student_id as sid FROM students WHERE student_id = ?', [studentId]);
         if (students.length === 0) {
             return res.status(404).json({ message: 'Student not found.' });
         }
 
         const [meals] = await pool.query(
             'SELECT * FROM meal_requests WHERE student_id = ? ORDER BY meal_date DESC, FIELD(meal_type, "breakfast", "lunch", "snacks", "dinner") LIMIT 30',
-            [students[0].id]
+            [students[0].sid]
         );
 
         res.json(meals);
     } catch (err) {
-        console.error('Get Meals Error:', err);
+        logger.error('Get Meals Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -79,7 +80,7 @@ exports.getAll = async (req, res) => {
 
         res.json(meals);
     } catch (err) {
-        console.error('Get All Meals Error:', err);
+        logger.error('Get All Meals Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -100,7 +101,7 @@ exports.cancel = async (req, res) => {
 
         res.json({ message: 'Meal request cancelled.' });
     } catch (err) {
-        console.error('Cancel Meal Error:', err);
+        logger.error('Cancel Meal Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
@@ -82,7 +83,7 @@ exports.register = async (req, res) => {
             user: { id: user.id, name, email, role: roleName },
         });
     } catch (err) {
-        console.error('Register Error:', err);
+        logger.error('Register Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -165,7 +166,7 @@ exports.login = async (req, res) => {
             user: { id: user.id, name: user.name, email: user.email, role: user.role_name },
         });
     } catch (err) {
-        console.error('Login Error:', err);
+        logger.error('Login Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -213,7 +214,7 @@ exports.refresh = async (req, res) => {
             refreshToken: newRefreshToken,
         });
     } catch (err) {
-        console.error('Refresh Error:', err);
+        logger.error('Refresh Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -235,7 +236,7 @@ exports.logout = async (req, res) => {
 
         res.json({ message: 'Logged out successfully.' });
     } catch (err) {
-        console.error('Logout Error:', err);
+        logger.error('Logout Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -253,35 +254,38 @@ exports.logoutAll = async (req, res) => {
 
         res.json({ message: 'Logged out from all devices.' });
     } catch (err) {
-        console.error('Logout All Error:', err);
+        logger.error('Logout All Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
 
-// ── Google Login (Secure — validates token, not raw email) ──
+// ── Google Login (Server-verified) ──
 
 exports.googleLogin = async (req, res) => {
     try {
-        // In production, verify the Google ID token server-side:
-        // const { OAuth2Client } = require('google-auth-library');
-        // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-        // const ticket = await client.verifyIdToken({ idToken: req.body.credential, audience: GOOGLE_CLIENT_ID });
-        // const { email, name } = ticket.getPayload();
-
-        // For now, we'll extract email from the credential payload
-        // WARNING: In production, ALWAYS verify the Google ID token server-side
         const { credential } = req.body;
-
-        // Decode JWT (Google ID token) — in production, use google-auth-library to verify
-        const parts = credential.split('.');
-        if (parts.length !== 3) {
-            return res.status(400).json({ message: 'Invalid Google credential.' });
+        if (!credential) {
+            return res.status(400).json({ message: 'Missing Google credential.' });
         }
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-        const email = payload.email;
 
+        // Server-side verification of Google ID token
+        const { OAuth2Client } = require('google-auth-library');
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+        let payload;
+        try {
+            const ticket = await client.verifyIdToken({
+                idToken: credential,
+                audience: process.env.GOOGLE_CLIENT_ID,
+            });
+            payload = ticket.getPayload();
+        } catch (verifyErr) {
+            logger.warn('Google token verification failed:', { error: verifyErr.message });
+            return res.status(401).json({ message: 'Invalid or expired Google token.' });
+        }
+
+        const email = payload.email;
         if (!email) {
-            return res.status(400).json({ message: 'Email not found in credential.' });
+            return res.status(400).json({ message: 'Email not found in Google token.' });
         }
 
         const [users] = await pool.query(
@@ -323,7 +327,7 @@ exports.googleLogin = async (req, res) => {
             user: { id: user.id, name: user.name, email: user.email, role: user.role_name },
         });
     } catch (err) {
-        console.error('Google Login Error:', err);
+        logger.error('Google Login Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -345,7 +349,7 @@ exports.me = async (req, res) => {
 
         res.json(users[0]);
     } catch (err) {
-        console.error('Me Error:', err);
+        logger.error('Me Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

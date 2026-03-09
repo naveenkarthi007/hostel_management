@@ -37,6 +37,18 @@
         <button class="nav-item" id="nav-complaints" onclick="switchTab('complaints', this)">
           <span class="nav-icon">🛠️</span> Complaints
         </button>
+        <button class="nav-item" id="nav-rooms" onclick="switchTab('rooms', this)">
+          <span class="nav-icon">🏠</span> Room Changes
+        </button>
+        <button class="nav-item" id="nav-meals" onclick="switchTab('meals', this)">
+          <span class="nav-icon">🍽️</span> Meals
+        </button>
+        <button class="nav-item" id="nav-lab" onclick="switchTab('lab', this)">
+          <span class="nav-icon">💻</span> Lab Slots
+        </button>
+        <button class="nav-item" id="nav-analytics" onclick="switchTab('analytics', this)">
+          <span class="nav-icon">📊</span> Analytics
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -153,13 +165,110 @@
           </div>
         </div>
 
+        <!-- Room Changes Tab -->
+        <div id="tab-rooms" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">🏠</span> Room Change Requests</h3>
+            <div id="room-changes-empty" class="empty" style="display:none">
+              <span class="empty-icon">🏠</span>
+              <p>No room change requests</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Student</th><th>Current Room</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="room-changes-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meals Tab -->
+        <div id="tab-meals" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">🍽️</span> Meal Requests</h3>
+            <div class="form-row" style="margin-bottom:1rem">
+              <div class="form-group">
+                <label>Filter by Date</label>
+                <input type="date" id="meal-filter-date" onchange="loadAllMeals()">
+              </div>
+            </div>
+            <div id="all-meals-empty" class="empty" style="display:none">
+              <span class="empty-icon">🍽️</span>
+              <p>No meal requests for this date</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Student</th><th>Date</th><th>Meal</th><th>Type</th><th>Notes</th><th>Status</th></tr></thead>
+                <tbody id="all-meals-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lab Slots Tab -->
+        <div id="tab-lab" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">💻</span> Create Lab Slot</h3>
+            <div class="form-row">
+              <div class="form-group"><label>Venue</label><input type="text" id="lab-venue" placeholder="e.g. Lab A"></div>
+              <div class="form-group"><label>Date</label><input type="date" id="lab-slot-date"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>From Time</label><input type="time" id="lab-from-time"></div>
+              <div class="form-group"><label>To Time</label><input type="time" id="lab-to-time"></div>
+              <div class="form-group"><label>Total Systems</label><input type="number" id="lab-total" min="1" value="30"></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-create-slot" onclick="createLabSlot()">➕ Create Slot</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">📋</span> Existing Slots</h3>
+            <div id="lab-slots-empty" class="empty" style="display:none">
+              <span class="empty-icon">💻</span><p>No lab slots found</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Venue</th><th>Date</th><th>Time</th><th>Systems</th></tr></thead>
+                <tbody id="lab-slots-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="tab-analytics" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">📊</span> Dashboard Overview</h3>
+            <div id="analytics-overview" class="profile-grid" style="padding:1rem 0"></div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">🏠</span> Hostel Occupancy</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Hostel</th><th>Total Capacity</th><th>Current Occupancy</th><th>Fill Rate</th></tr></thead>
+                <tbody id="occupancy-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">🛠️</span> Complaint Metrics</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Type</th><th>Total</th><th>Resolved</th><th>Avg Resolution (hrs)</th></tr></thead>
+                <tbody id="complaint-metrics-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
     </main>
   </div>
 
   <script src="/js/common.js?v=2"></script>
   <script>
-    requireAuth(['hostelmanager', 'caretaker', 'messmanager']);
+    requireAuth(['hostel_manager', 'caretaker', 'mess_manager', 'hostelmanager', 'messmanager']);
     const user = getUser();
     document.getElementById('nav-user').textContent = user.name;
     document.getElementById('welcome-name').textContent = user.name;
@@ -184,7 +293,7 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       (navEl || document.getElementById('nav-' + tab)).classList.add('active');
       document.getElementById('tab-' + tab).classList.add('active');
-      const titles = { 'warden-leaves': 'Warden Leaves', 'student-leaves': 'Student Leaves', complaints: 'Complaints' };
+      const titles = { 'warden-leaves': 'Warden Leaves', 'student-leaves': 'Student Leaves', complaints: 'Complaints', rooms: 'Room Changes', meals: 'Meal Requests', lab: 'Lab Slots', analytics: 'Analytics' };
       document.getElementById('page-title').textContent = titles[tab] || 'Manager Dashboard';
       if (window.innerWidth <= 1024) toggleSidebar();
     }
@@ -255,7 +364,7 @@
         tbody.innerHTML = list.map(c => `<tr>
           <td><strong>${c.student_name || '-'}</strong></td>
           <td>${c.complaint_type}</td>
-          <td style="max-width:200px;white-space:normal">${c.issue}</td>
+          <td style="max-width:200px;white-space:normal">${c.description || c.issue}</td>
           <td>${formatDate(c.created_at)}</td>
           <td>${statusBadge(c.status)}</td>
           <td>
@@ -287,6 +396,116 @@
         selectEl.value = origVal;
       }
     }
+
+    // ── Room Changes ──
+    async function loadRoomChanges() {
+      try {
+        const list = await apiCall('/api/rooms/changes?status=pending');
+        const tbody = document.getElementById('room-changes-tbody');
+        const empty = document.getElementById('room-changes-empty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(r => `<tr>
+          <td><strong>${r.student_name || r.student_code || '-'}</strong></td>
+          <td>${r.current_room || '-'}</td>
+          <td style="max-width:200px;white-space:normal">${r.reason}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td>${r.status === 'pending' ? `<div class="action-group">
+            <button class="btn btn-success btn-sm" onclick="updateRoomChange(${r.id},'approved',this)">✔</button>
+            <button class="btn btn-danger btn-sm" onclick="updateRoomChange(${r.id},'rejected',this)">✕</button>
+          </div>` : '—'}</td>
+        </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function updateRoomChange(id, status, btn) {
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        await apiCall(`/api/rooms/change/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+        showToast(`Room change ${status}`, 'success');
+        loadRoomChanges();
+      } catch (e) { showToast(e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    // ── Meals ──
+    async function loadAllMeals() {
+      const date = document.getElementById('meal-filter-date').value;
+      try {
+        const url = date ? `/api/meals/all?date=${date}` : '/api/meals/all';
+        const list = await apiCall(url);
+        const tbody = document.getElementById('all-meals-tbody');
+        const empty = document.getElementById('all-meals-empty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(m => `<tr>
+          <td>${m.student_name || m.student_code || '-'}</td>
+          <td>${formatDate(m.meal_date)}</td><td>${m.meal_type}</td>
+          <td>${m.request_type || 'opt_in'}</td><td>${m.special_notes || '—'}</td>
+          <td>${statusBadge(m.status)}</td>
+        </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // ── Lab Slots ──
+    async function createLabSlot() {
+      const btn = document.getElementById('btn-create-slot');
+      const venue = document.getElementById('lab-venue').value.trim();
+      const slot_date = document.getElementById('lab-slot-date').value;
+      const from_time = document.getElementById('lab-from-time').value;
+      const to_time = document.getElementById('lab-to-time').value;
+      const total_systems = parseInt(document.getElementById('lab-total').value);
+      if (!venue || !slot_date || !from_time || !to_time) return showToast('Fill all fields', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        await apiCall('/api/lab/slots', { method: 'POST', body: JSON.stringify({ venue, slot_date, from_time, to_time, total_systems }) });
+        showToast('Lab slot created!', 'success');
+        loadLabSlots();
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    async function loadLabSlots() {
+      try {
+        const slots = await apiCall('/api/lab/slots');
+        const tbody = document.getElementById('lab-slots-tbody');
+        const empty = document.getElementById('lab-slots-empty');
+        if (!slots.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = slots.map(s => `<tr>
+          <td>${s.venue}</td><td>${formatDate(s.slot_date)}</td>
+          <td>${s.from_time} - ${s.to_time}</td><td>${s.total_systems}</td>
+        </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // ── Analytics ──
+    async function loadAnalytics() {
+      try {
+        const data = await apiCall('/api/analytics/dashboard');
+        const ov = data.overview || {};
+        document.getElementById('analytics-overview').innerHTML = `
+          <div class="profile-item"><span class="label">Total Students</span><span class="value">${ov.totalStudents || 0}</span></div>
+          <div class="profile-item"><span class="label">Total Wardens</span><span class="value">${ov.totalWardens || 0}</span></div>
+          <div class="profile-item"><span class="label">Total Hostels</span><span class="value">${ov.totalHostels || 0}</span></div>
+        `;
+        const occ = data.occupancy || [];
+        document.getElementById('occupancy-tbody').innerHTML = occ.map(h => {
+          const rate = h.total_capacity > 0 ? Math.round((h.current_occupancy / h.total_capacity) * 100) : 0;
+          return `<tr><td>${h.hostel}</td><td>${h.total_capacity}</td><td>${h.current_occupancy}</td><td>${rate}%</td></tr>`;
+        }).join('');
+
+        const metrics = await apiCall('/api/analytics/complaint-metrics');
+        const rm = metrics.resolutionMetrics || [];
+        document.getElementById('complaint-metrics-tbody').innerHTML = rm.map(m =>
+          `<tr><td>${m.complaint_type}</td><td>${m.total}</td><td>${m.resolved}</td><td>${Math.round(m.avg_hours || 0)}</td></tr>`
+        ).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // Load all new tabs data
+    loadRoomChanges();
+    loadLabSlots();
+    loadAnalytics();
   </script>
 </body>
 </html>

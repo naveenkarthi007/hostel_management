@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const { cacheGet } = require('../config/redis');
 
@@ -75,7 +76,7 @@ exports.dashboard = async (req, res) => {
 
         res.json(data);
     } catch (err) {
-        console.error('Dashboard Error:', err);
+        logger.error('Dashboard Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -102,7 +103,7 @@ exports.leaveTrends = async (req, res) => {
 
         res.json(trends);
     } catch (err) {
-        console.error('Leave Trends Error:', err);
+        logger.error('Leave Trends Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -134,7 +135,7 @@ exports.complaintMetrics = async (req, res) => {
 
         res.json({ resolutionMetrics: avgResolution, overdue: unresolved });
     } catch (err) {
-        console.error('Complaint Metrics Error:', err);
+        logger.error('Complaint Metrics Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

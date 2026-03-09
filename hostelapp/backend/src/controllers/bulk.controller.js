@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const bcrypt = require('bcryptjs');
 const { logAudit } = require('../services/audit.service');
@@ -99,7 +100,7 @@ exports.bulkImportStudents = async (req, res) => {
         });
     } catch (err) {
         await connection.rollback();
-        console.error('Bulk Import Error:', err);
+        logger.error('Bulk Import Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Bulk import failed.' });
     } finally {
         connection.release();
@@ -172,7 +173,7 @@ exports.bulkImportWardens = async (req, res) => {
         });
     } catch (err) {
         await connection.rollback();
-        console.error('Bulk Import Wardens Error:', err);
+        logger.error('Bulk Import Wardens Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Bulk import failed.' });
     } finally {
         connection.release();

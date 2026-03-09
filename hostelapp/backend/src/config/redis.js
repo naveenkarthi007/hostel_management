@@ -13,8 +13,9 @@ async function getRedisClient() {
             password: process.env.REDIS_PASSWORD || undefined
         });
 
-        redisClient.on('error', (err) => console.error('Redis Error:', err));
-        redisClient.on('connect', () => console.log('✅ Redis connected'));
+        const { logger } = require('../middleware/logger.middleware');
+        redisClient.on('error', (err) => logger.error('Redis Error', { error: err.message }));
+        redisClient.on('connect', () => logger.info('✅ Redis connected'));
 
         await redisClient.connect();
     }

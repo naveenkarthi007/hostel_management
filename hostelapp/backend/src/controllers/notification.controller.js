@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 
 // ── Get User's Notifications ──
@@ -31,7 +32,7 @@ exports.getNotifications = async (req, res) => {
             unread: countResult[0].unread,
         });
     } catch (err) {
-        console.error('Get Notifications Error:', err);
+        logger.error('Get Notifications Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -46,7 +47,7 @@ exports.markRead = async (req, res) => {
         );
         res.json({ message: 'Marked as read.' });
     } catch (err) {
-        console.error('Mark Read Error:', err);
+        logger.error('Mark Read Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -60,7 +61,7 @@ exports.markAllRead = async (req, res) => {
         );
         res.json({ message: 'All marked as read.' });
     } catch (err) {
-        console.error('Mark All Read Error:', err);
+        logger.error('Mark All Read Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

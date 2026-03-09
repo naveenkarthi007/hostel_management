@@ -72,7 +72,7 @@ const authSchemas = {
 
 const leaveSchemas = {
     apply: Joi.object({
-        leaveType: Joi.string().valid('leave', 'od', 'internal_od', 'internal_training').required(),
+        leaveType: Joi.string().valid('Leave', 'OD', 'Internal OD', 'Internal Training').required(),
         fromDate: Joi.date().iso().required(),
         toDate: Joi.date().iso().min(Joi.ref('fromDate')).required(),
         fromTime: Joi.string().pattern(/^\d{2}:\d{2}$/).optional(),

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bannari Amman College — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css?v=2">
+  <style>
+    .welcome-banner { background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%); }
+    .sidebar-brand .brand-icon { background: linear-gradient(135deg, #334155, #475569); }
+    .stat-cards { grid-template-columns: repeat(4, 1fr); }
+    .bulk-result { margin-top: 1rem; padding: 1rem; border-radius: 8px; font-size: 0.85rem; }
+    .bulk-result.success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); }
+    .bulk-result.error { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); }
+    .audit-filters { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .audit-filters select, .audit-filters input { font-size: 0.8rem; padding: 6px 10px; }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">⚙️</span>
+        <span class="brand-text">BIT Admin</span>
+      </div>
+      <div class="sidebar-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="nav-users" onclick="switchTab('users', this)">
+          <span class="nav-icon">👥</span> Users
+        </button>
+        <button class="nav-item" id="nav-audit" onclick="switchTab('audit', this)">
+          <span class="nav-icon">📋</span> Audit Logs
+        </button>
+        <button class="nav-item" id="nav-bulk" onclick="switchTab('bulk', this)">
+          <span class="nav-icon">📦</span> Bulk Import
+        </button>
+        <button class="nav-item" id="nav-analytics" onclick="switchTab('analytics', this)">
+          <span class="nav-icon">📊</span> Analytics
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-avatar" id="user-avatar" style="background:linear-gradient(135deg,#334155,#475569)">A</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="nav-user"></div>
+            <div class="sidebar-user-role">Admin</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="logout()">⏻ Sign Out</button>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <main class="main-content">
+      <header class="content-header">
+        <div class="content-header-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+          <h2 id="page-title">Admin Dashboard</h2>
+        </div>
+        <div class="header-right">
+          <span class="header-badge" id="header-date"></span>
+        </div>
+      </header>
+
+      <div class="dashboard">
+        <div class="welcome-banner">
+          <div class="welcome-top">
+            <div class="welcome-avatar">⚙️</div>
+            <div class="welcome-text">
+              <h2>Welcome, <span id="welcome-name">Admin</span></h2>
+              <p>Manage users, review audit logs, and import data in bulk</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-icon purple">👥</div>
+            <div class="stat-info"><h4 id="stat-users">—</h4><p>Total Users</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🎓</div>
+            <div class="stat-info"><h4 id="stat-students">—</h4><p>Students</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">🛡️</div>
+            <div class="stat-info"><h4 id="stat-wardens">—</h4><p>Wardens</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">🏠</div>
+            <div class="stat-info"><h4 id="stat-hostels">—</h4><p>Hostels</p></div>
+          </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="tab-users" class="tab-content active">
+          <div class="card">
+            <h3><span class="section-icon">👥</span> All Users</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Last Login</th></tr></thead>
+                <tbody id="users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Logs Tab -->
+        <div id="tab-audit" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">📋</span> Audit Logs</h3>
+            <div class="audit-filters">
+              <select id="audit-module" onchange="loadAudit()">
+                <option value="">All Modules</option>
+                <option value="auth">Auth</option>
+                <option value="leave">Leave</option>
+                <option value="complaint">Complaint</option>
+                <option value="warden_leave">Warden Leave</option>
+                <option value="room">Room</option>
+                <option value="meal">Meal</option>
+                <option value="lab">Lab</option>
+              </select>
+              <select id="audit-action" onchange="loadAudit()">
+                <option value="">All Actions</option>
+                <option value="LOGIN">Login</option>
+                <option value="LOGOUT">Logout</option>
+                <option value="CREATE">Create</option>
+                <option value="UPDATE">Update</option>
+                <option value="DELETE">Delete</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Module</th><th>IP</th></tr></thead>
+                <tbody id="audit-tbody"></tbody>
+              </table>
+            </div>
+            <div style="margin-top:1rem;text-align:center">
+              <button class="btn btn-secondary btn-sm" id="btn-audit-prev" onclick="auditPage(-1)" disabled>&lt; Prev</button>
+              <span id="audit-page-info" style="margin:0 1rem;font-size:0.8rem">Page 1</span>
+              <button class="btn btn-secondary btn-sm" id="btn-audit-next" onclick="auditPage(1)">Next &gt;</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">📊</span> Audit Statistics (Last 7 Days)</h3>
+            <div class="form-row">
+              <div id="audit-by-module" style="flex:1"></div>
+              <div id="audit-by-action" style="flex:1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Import Tab -->
+        <div id="tab-bulk" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">🎓</span> Bulk Import Students</h3>
+            <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+              Paste JSON array of students. Each needs: <code>name, email, student_id, contact</code>.
+              Optional: <code>department, year, hostel_code, room_number, warden_id</code>.
+            </p>
+            <div class="form-group">
+              <textarea id="bulk-students" rows="8" placeholder='[{"name":"John","email":"john@x.com","student_id":"S100","contact":"9876543210"}]'></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-bulk-students" onclick="bulkImport('students')">📦 Import Students</button>
+            </div>
+            <div id="bulk-students-result"></div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">🛡️</span> Bulk Import Wardens</h3>
+            <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem">
+              Paste JSON array. Each needs: <code>name, email, warden_id</code>.
+              Optional: <code>contact, department, hostel_code, floor</code>.
+            </p>
+            <div class="form-group">
+              <textarea id="bulk-wardens" rows="6" placeholder='[{"name":"Dr. X","email":"x@hostel.com","warden_id":"W010"}]'></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-bulk-wardens" onclick="bulkImport('wardens')">📦 Import Wardens</button>
+            </div>
+            <div id="bulk-wardens-result"></div>
+          </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="tab-analytics" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">📊</span> Overview</h3>
+            <div id="analytics-overview" class="profile-grid" style="padding:1rem 0"></div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">🏠</span> Hostel Occupancy</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Hostel</th><th>Capacity</th><th>Occupancy</th><th>Fill Rate</th></tr></thead>
+                <tbody id="occupancy-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">🛠️</span> Complaint Resolution</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Type</th><th>Total</th><th>Resolved</th><th>Avg Hours</th></tr></thead>
+                <tbody id="complaint-metrics-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/common.js?v=2"></script>
+  <script>
+    requireAuth(['admin']);
+    const user = getUser();
+    document.getElementById('nav-user').textContent = user.name;
+    document.getElementById('welcome-name').textContent = user.name;
+    document.getElementById('user-avatar').textContent = user.name ? user.name.charAt(0).toUpperCase() : 'A';
+    document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+
+    function switchTab(tab, navEl) {
+      document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      (navEl || document.getElementById('nav-' + tab)).classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+      document.getElementById('page-title').textContent =
+        { users: 'User Management', audit: 'Audit Logs', bulk: 'Bulk Import', analytics: 'Analytics' }[tab] || 'Admin Dashboard';
+      if (window.innerWidth <= 1024) toggleSidebar();
+    }
+
+    // ── Users ──
+    async function loadUsers() {
+      try {
+        const list = await apiCall('/api/profile/all');
+        const tbody = document.getElementById('users-tbody');
+        document.getElementById('stat-users').textContent = list.length;
+        document.getElementById('stat-students').textContent = list.filter(u => u.role_name === 'student').length;
+        document.getElementById('stat-wardens').textContent = list.filter(u => u.role_name === 'warden').length;
+        tbody.innerHTML = list.map(u => `<tr>
+          <td>${u.id}</td><td>${u.name}</td><td>${u.email}</td>
+          <td><span class="badge badge-${u.role_name === 'admin' ? 'purple' : 'blue'}">${u.role_name}</span></td>
+          <td>${u.is_active ? '✅' : '❌'}</td>
+          <td>${u.last_login_at ? formatDate(u.last_login_at) : '—'}</td>
+        </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // ── Audit Logs ──
+    let currentAuditPage = 1;
+
+    async function loadAudit() {
+      const module = document.getElementById('audit-module').value;
+      const action = document.getElementById('audit-action').value;
+      let url = `/api/audit/?page=${currentAuditPage}&limit=30`;
+      if (module) url += `&module=${module}`;
+      if (action) url += `&action=${action}`;
+      try {
+        const res = await apiCall(url);
+        const logs = res.data || [];
+        const pag = res.pagination || {};
+        document.getElementById('audit-tbody').innerHTML = logs.map(l => `<tr>
+          <td style="font-size:0.78rem">${new Date(l.created_at).toLocaleString()}</td>
+          <td>${l.user_email || '—'}</td>
+          <td><span class="badge">${l.action}</span></td>
+          <td>${l.module}</td><td>${l.ip_address || '—'}</td>
+        </tr>`).join('') || '<tr><td colspan="5" style="text-align:center">No logs found</td></tr>';
+        document.getElementById('audit-page-info').textContent = `Page ${pag.page || 1} of ${Math.ceil((pag.total || 0) / (pag.limit || 30))}`;
+        document.getElementById('btn-audit-prev').disabled = (pag.page || 1) <= 1;
+        document.getElementById('btn-audit-next').disabled = (pag.page || 1) * (pag.limit || 30) >= (pag.total || 0);
+      } catch (e) { console.error(e); }
+    }
+
+    function auditPage(delta) {
+      currentAuditPage = Math.max(1, currentAuditPage + delta);
+      loadAudit();
+    }
+
+    async function loadAuditStats() {
+      try {
+        const stats = await apiCall('/api/audit/stats');
+        document.getElementById('audit-by-module').innerHTML = '<h4 style="font-size:0.85rem;margin-bottom:0.5rem">By Module</h4>' +
+          (stats.byModule || []).map(m => `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82rem"><span>${m.module}</span><strong>${m.count}</strong></div>`).join('');
+        document.getElementById('audit-by-action').innerHTML = '<h4 style="font-size:0.85rem;margin-bottom:0.5rem">By Action</h4>' +
+          (stats.byAction || []).map(a => `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.82rem"><span>${a.action}</span><strong>${a.count}</strong></div>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // ── Bulk Import ──
+    async function bulkImport(type) {
+      const btn = document.getElementById(`btn-bulk-${type}`);
+      const textarea = document.getElementById(`bulk-${type}`);
+      const resultDiv = document.getElementById(`bulk-${type}-result`);
+      let parsed;
+      try { parsed = JSON.parse(textarea.value); } catch { return showToast('Invalid JSON', 'error'); }
+      if (!Array.isArray(parsed) || !parsed.length) return showToast('Provide a non-empty array', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        const res = await apiCall(`/api/bulk/${type}`, { method: 'POST', body: JSON.stringify({ [type]: parsed }) });
+        resultDiv.innerHTML = `<div class="bulk-result success">✅ ${res.message}</div>` +
+          (res.errors?.length ? `<div class="bulk-result error">Errors:<br>${res.errors.map(e => `Row ${e.row}: ${e.error}`).join('<br>')}</div>` : '');
+        textarea.value = '';
+        loadUsers();
+      } catch (e) {
+        resultDiv.innerHTML = `<div class="bulk-result error">❌ ${e.message}</div>`;
+      }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    // ── Analytics ──
+    async function loadAnalytics() {
+      try {
+        const data = await apiCall('/api/analytics/dashboard');
+        const ov = data.overview || {};
+        document.getElementById('stat-hostels').textContent = ov.totalHostels || 0;
+        document.getElementById('analytics-overview').innerHTML = `
+          <div class="profile-item"><span class="label">Total Students</span><span class="value">${ov.totalStudents || 0}</span></div>
+          <div class="profile-item"><span class="label">Total Wardens</span><span class="value">${ov.totalWardens || 0}</span></div>
+          <div class="profile-item"><span class="label">Total Hostels</span><span class="value">${ov.totalHostels || 0}</span></div>
+        `;
+        document.getElementById('occupancy-tbody').innerHTML = (data.occupancy || []).map(h => {
+          const rate = h.total_capacity > 0 ? Math.round((h.current_occupancy / h.total_capacity) * 100) : 0;
+          return `<tr><td>${h.hostel}</td><td>${h.total_capacity}</td><td>${h.current_occupancy}</td><td>${rate}%</td></tr>`;
+        }).join('');
+
+        const metrics = await apiCall('/api/analytics/complaint-metrics');
+        document.getElementById('complaint-metrics-tbody').innerHTML = (metrics.resolutionMetrics || []).map(m =>
+          `<tr><td>${m.complaint_type}</td><td>${m.total}</td><td>${m.resolved}</td><td>${Math.round(m.avg_hours || 0)}</td></tr>`
+        ).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // Init
+    loadUsers();
+    loadAudit();
+    loadAuditStats();
+    loadAnalytics();
+  </script>
+</body>
+</html>

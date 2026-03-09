@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db').promise;
+const { logger } = require('../middleware/logger.middleware');
 
 let io = null;
 
@@ -36,7 +37,7 @@ function initializeSocket(server) {
 
     io.on('connection', (socket) => {
         const userId = socket.user.id;
-        console.log(`🔌 User ${userId} connected [${socket.id}]`);
+        logger.info(`🔌 User ${userId} connected [${socket.id}]`);
 
         // Track user's sockets (supports multiple tabs/devices)
         if (!userSockets.has(userId)) {
@@ -59,7 +60,7 @@ function initializeSocket(server) {
                 );
                 sendUnreadCount(userId);
             } catch (err) {
-                console.error('Mark read error:', err);
+                logger.error('Mark read error', { error: err.message });
             }
         });
 
@@ -72,7 +73,7 @@ function initializeSocket(server) {
                 );
                 sendUnreadCount(userId);
             } catch (err) {
-                console.error('Mark all read error:', err);
+                logger.error('Mark all read error', { error: err.message });
             }
         });
 
@@ -84,11 +85,11 @@ function initializeSocket(server) {
                     userSockets.delete(userId);
                 }
             }
-            console.log(`🔌 User ${userId} disconnected [${socket.id}]`);
+            logger.info(`🔌 User ${userId} disconnected [${socket.id}]`);
         });
     });
 
-    console.log('✅ WebSocket server initialized');
+    logger.info('✅ WebSocket server initialized');
     return io;
 }
 
@@ -124,7 +125,7 @@ async function notifyUser(userId, { title, message, type = 'info', module, refer
 
         return notification;
     } catch (err) {
-        console.error('Notify user error:', err);
+        logger.error('Notify user error', { error: err.message });
     }
 }
 
@@ -143,7 +144,7 @@ async function notifyRole(roleName, notificationData) {
             await notifyUser(user.id, notificationData);
         }
     } catch (err) {
-        console.error('Notify role error:', err);
+        logger.error('Notify role error', { error: err.message });
     }
 }
 
@@ -171,7 +172,7 @@ async function sendUnreadCount(userId) {
         );
         emitToUser(userId, 'notification:count', rows[0].count);
     } catch (err) {
-        console.error('Unread count error:', err);
+        logger.error('Unread count error', { error: err.message });
     }
 }
 

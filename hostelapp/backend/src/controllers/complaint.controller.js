@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const { logAudit } = require('../services/audit.service');
 const { notifyRole } = require('../services/socket.service');
@@ -45,7 +46,7 @@ exports.addComplaint = async (req, res) => {
 
         res.status(201).json({ message: 'Complaint submitted successfully.', id: result.insertId });
     } catch (err) {
-        console.error('Add Complaint Error:', err);
+        logger.error('Add Complaint Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -113,7 +114,7 @@ exports.updateComplaintStatus = async (req, res) => {
 
         res.json({ message: 'Complaint status updated.' });
     } catch (err) {
-        console.error('Update Complaint Error:', err);
+        logger.error('Update Complaint Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -139,7 +140,7 @@ exports.getComplaintsByStudent = async (req, res) => {
 
         res.json(complaints);
     } catch (err) {
-        console.error('Get Complaints Error:', err);
+        logger.error('Get Complaints Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -181,7 +182,7 @@ exports.getAllComplaints = async (req, res) => {
 
         res.json(complaints);
     } catch (err) {
-        console.error('Get All Complaints Error:', err);
+        logger.error('Get All Complaints Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

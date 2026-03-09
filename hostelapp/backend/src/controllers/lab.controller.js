@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const { logAudit } = require('../services/audit.service');
 
@@ -29,7 +30,7 @@ exports.getSlots = async (req, res) => {
 
         res.json(slots);
     } catch (err) {
-        console.error('Get Slots Error:', err);
+        logger.error('Get Slots Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -40,7 +41,7 @@ exports.bookSystem = async (req, res) => {
         const { studentId } = req.params;
         const { slot_id, system_no } = req.body;
 
-        const [students] = await pool.query('SELECT id FROM students WHERE student_id = ?', [studentId]);
+        const [students] = await pool.query('SELECT id, student_id as sid FROM students WHERE student_id = ?', [studentId]);
         if (students.length === 0) {
             return res.status(404).json({ message: 'Student not found.' });
         }
@@ -57,7 +58,7 @@ exports.bookSystem = async (req, res) => {
 
         const [result] = await pool.query(
             'INSERT INTO computer_bookings (student_id, slot_id, system_no) VALUES (?, ?, ?)',
-            [students[0].id, slot_id, system_no]
+            [students[0].sid, slot_id, system_no]
         );
 
         // Update available count
@@ -79,7 +80,7 @@ exports.bookSystem = async (req, res) => {
         if (err.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ message: 'This system is already booked for this slot.' });
         }
-        console.error('Book System Error:', err);
+        logger.error('Book System Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -102,7 +103,7 @@ exports.cancelBooking = async (req, res) => {
 
         res.json({ message: 'Booking cancelled.' });
     } catch (err) {
-        console.error('Cancel Booking Error:', err);
+        logger.error('Cancel Booking Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -113,14 +114,14 @@ exports.createSlot = async (req, res) => {
         const { venue, from_time, to_time, slot_date, total_systems } = req.body;
 
         const [result] = await pool.query(
-            `INSERT INTO computerlab_slots (venue, from_time, to_time, slot_date, total_systems, available_systems, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [venue, from_time, to_time, slot_date, total_systems, total_systems, req.user.id]
+            `INSERT INTO computerlab_slots (venue, from_time, to_time, slot_date, total_systems, available_systems)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [venue, from_time, to_time, slot_date, total_systems, total_systems]
         );
 
         res.status(201).json({ message: 'Slot created.', id: result.insertId });
     } catch (err) {
-        console.error('Create Slot Error:', err);
+        logger.error('Create Slot Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };

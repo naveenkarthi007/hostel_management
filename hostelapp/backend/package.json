@@ -1,31 +1,37 @@
 {
     "name": "hostelapp-backend",
-    "version": "1.0.0",
-    "description": "Hostel Management System - Backend API",
-    "main": "server.js",
+    "version": "2.0.0",
+    "description": "Hostel Management System - Enterprise Backend API",
+    "main": "src/server.js",
     "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js"
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js",
+        "seed": "node src/scripts/seed.js",
+        "migrate": "node src/scripts/migrate.js"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "type": "commonjs",
     "dependencies": {
-        "bcrypt": "^6.0.0",
         "bcryptjs": "^3.0.2",
-        "body-parser": "^2.2.0",
-        "cors": "^2.8.6",
+        "cors": "^2.8.5",
         "dotenv": "^16.5.0",
         "express": "^5.1.0",
         "express-rate-limit": "^8.3.0",
-        "express-validator": "^7.3.1",
+        "google-auth-library": "^10.6.1",
         "helmet": "^8.1.0",
+        "hpp": "^0.2.3",
+        "joi": "^17.13.0",
         "jsonwebtoken": "^9.0.2",
         "multer": "^2.0.2",
-        "mysql": "^2.18.1",
         "mysql2": "^3.14.1",
-        "nodemon": "^3.1.10",
-        "xss-clean": "^0.1.4"
+        "redis": "^4.7.0",
+        "socket.io": "^4.8.0",
+        "uuid": "^11.1.0",
+        "winston": "^3.17.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.10"
     }
 }

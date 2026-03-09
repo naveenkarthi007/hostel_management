@@ -36,6 +36,15 @@
         <button class="nav-item" id="nav-complaints" onclick="switchTab('complaints', this)">
           <span class="nav-icon">🛠️</span> Complaints
         </button>
+        <button class="nav-item" id="nav-rooms" onclick="switchTab('rooms', this)">
+          <span class="nav-icon">🏠</span> Room Change
+        </button>
+        <button class="nav-item" id="nav-meals" onclick="switchTab('meals', this)">
+          <span class="nav-icon">🍽️</span> Meals
+        </button>
+        <button class="nav-item" id="nav-lab" onclick="switchTab('lab', this)">
+          <span class="nav-icon">💻</span> Lab Booking
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -121,10 +130,10 @@
               <div class="form-group">
                 <label>Leave Type</label>
                 <select id="leave-type">
-                  <option value="Sick Leave">🤒 Sick Leave</option>
-                  <option value="Personal Leave">👤 Personal Leave</option>
-                  <option value="Emergency Leave">🚨 Emergency Leave</option>
-                  <option value="Vacation Leave">✈️ Vacation Leave</option>
+                  <option value="Leave">🏠 Leave</option>
+                  <option value="OD">📋 On Duty (OD)</option>
+                  <option value="Internal OD">🏢 Internal OD</option>
+                  <option value="Internal Training">🎓 Internal Training</option>
                 </select>
               </div>
               <div class="form-group">
@@ -213,6 +222,102 @@
             </div>
           </div>
         </div>
+
+        <!-- Room Change Tab -->
+        <div id="tab-rooms" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">🏠</span> Request Room Change</h3>
+            <div class="form-group">
+              <label>Reason for Room Change</label>
+              <textarea id="room-reason" placeholder="Explain why you need a room change..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-room-change" onclick="requestRoomChange()">📝 Submit Request</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">📋</span> My Room Change Requests</h3>
+            <div id="room-requests-empty" class="empty" style="display:none">
+              <span class="empty-icon">🏠</span>
+              <p>No room change requests</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Reason</th><th>Status</th><th>Requested On</th></tr></thead>
+                <tbody id="room-requests-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meals Tab -->
+        <div id="tab-meals" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">🍽️</span> Request Meal</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Meal Date</label>
+                <input type="date" id="meal-date">
+              </div>
+              <div class="form-group">
+                <label>Meal Type</label>
+                <select id="meal-type">
+                  <option value="breakfast">🌅 Breakfast</option>
+                  <option value="lunch">☀️ Lunch</option>
+                  <option value="snacks">🍪 Snacks</option>
+                  <option value="dinner">🌙 Dinner</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Special Notes (optional)</label>
+              <input type="text" id="meal-notes" placeholder="Any dietary requirements...">
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-meal-request" onclick="requestMeal()">🍽️ Submit Request</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3><span class="section-icon">📋</span> My Meal Requests</h3>
+            <div id="meals-empty" class="empty" style="display:none">
+              <span class="empty-icon">🍽️</span>
+              <p>No meal requests</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Meal</th><th>Notes</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="meals-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lab Booking Tab -->
+        <div id="tab-lab" class="tab-content">
+          <div class="card">
+            <h3><span class="section-icon">💻</span> Available Lab Slots</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="lab-date">
+              </div>
+              <div class="form-group">
+                <label>System Number</label>
+                <input type="number" id="lab-system" min="1" placeholder="Enter system no.">
+              </div>
+            </div>
+            <div id="lab-slots-empty" class="empty" style="display:none">
+              <span class="empty-icon">💻</span>
+              <p>No lab slots available</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Venue</th><th>Time</th><th>Date</th><th>Available</th><th>Action</th></tr></thead>
+                <tbody id="lab-slots-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -255,7 +360,7 @@
       (navEl || document.getElementById('nav-' + tab)).classList.add('active');
       document.getElementById('tab-' + tab).classList.add('active');
       document.getElementById('page-title').textContent =
-        { profile: 'Profile', 'apply-leave': 'Apply Leave', 'my-leaves': 'My Leaves', complaints: 'Complaints' }[tab] || 'Dashboard';
+        { profile: 'Profile', 'apply-leave': 'Apply Leave', 'my-leaves': 'My Leaves', complaints: 'Complaints', rooms: 'Room Change', meals: 'Meals', lab: 'Lab Booking' }[tab] || 'Dashboard';
       if (window.innerWidth <= 1024) toggleSidebar();
     }
 
@@ -285,17 +390,17 @@
 
     async function applyLeave() {
       const btn = document.getElementById('btn-apply-leave');
-      const leave_type = document.getElementById('leave-type').value;
+      const leaveType = document.getElementById('leave-type').value;
       const reason = document.getElementById('leave-reason').value.trim();
-      const from_date = document.getElementById('leave-from').value;
-      const to_date = document.getElementById('leave-to').value;
-      if (!reason || !from_date || !to_date) return showToast('Please fill in all required fields', 'error');
-      if (new Date(to_date) < new Date(from_date)) return showToast('To date cannot be before From date', 'error');
+      const fromDate = document.getElementById('leave-from').value;
+      const toDate = document.getElementById('leave-to').value;
+      if (!reason || !fromDate || !toDate) return showToast('Please fill in all required fields', 'error');
+      if (new Date(toDate) < new Date(fromDate)) return showToast('To date cannot be before From date', 'error');
       btn.classList.add('loading'); btn.disabled = true;
       try {
         await apiCall(`/api/leave/apply/${studentId}`, {
           method: 'POST',
-          body: JSON.stringify({ leave_type, reason, from_date, to_date })
+          body: JSON.stringify({ leaveType, reason, fromDate, toDate })
         });
         showToast('Leave request submitted successfully!', 'success');
         document.getElementById('leave-reason').value = '';
@@ -344,7 +449,7 @@
       try {
         const fd = new FormData();
         fd.append('complaint_type', type);
-        fd.append('issue', description);
+        fd.append('description', description);
         if (fileInput.files[0]) fd.append('file', fileInput.files[0]);
         await apiCall(`/api/complaints/add/${studentId}`, { method: 'POST', body: fd });
         showToast('Complaint submitted successfully!', 'success');
@@ -364,12 +469,115 @@
         if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
         empty.style.display = 'none';
         tbody.innerHTML = list.map(c => `<tr>
-          <td>${c.complaint_type}</td><td>${c.issue}</td>
+          <td>${c.complaint_type}</td><td>${c.description || c.issue}</td>
           <td>${statusBadge(c.status)}</td><td>${formatDate(c.created_at)}</td>
         </tr>`).join('');
       } catch (e) { console.error(e); }
     }
 
+    // ── Room Change ──
+    async function requestRoomChange() {
+      const btn = document.getElementById('btn-room-change');
+      const reason = document.getElementById('room-reason').value.trim();
+      if (!reason) return showToast('Please provide a reason', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        await apiCall(`/api/rooms/change/${studentId}`, { method: 'POST', body: JSON.stringify({ reason }) });
+        showToast('Room change request submitted!', 'success');
+        document.getElementById('room-reason').value = '';
+        loadRoomRequests();
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    async function loadRoomRequests() {
+      try {
+        const list = await apiCall(`/api/rooms/changes?status=all`);
+        const tbody = document.getElementById('room-requests-tbody');
+        const empty = document.getElementById('room-requests-empty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(r => `<tr>
+          <td>${r.reason}</td><td>${statusBadge(r.status)}</td><td>${formatDate(r.created_at)}</td>
+        </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // ── Meals ──
+    async function requestMeal() {
+      const btn = document.getElementById('btn-meal-request');
+      const meal_date = document.getElementById('meal-date').value;
+      const meal_type = document.getElementById('meal-type').value;
+      const special_notes = document.getElementById('meal-notes').value.trim();
+      if (!meal_date) return showToast('Please select a date', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        await apiCall(`/api/meals/request/${studentId}`, { method: 'POST', body: JSON.stringify({ meal_date, meal_type, special_notes }) });
+        showToast('Meal request submitted!', 'success');
+        document.getElementById('meal-notes').value = '';
+        loadMeals();
+      } catch (e) { showToast(e.message, 'error'); }
+      finally { btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    async function loadMeals() {
+      try {
+        const list = await apiCall(`/api/meals/student/${studentId}`);
+        const tbody = document.getElementById('meals-tbody');
+        const empty = document.getElementById('meals-empty');
+        if (!list.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = list.map(m => `<tr>
+          <td>${formatDate(m.meal_date)}</td><td>${m.meal_type}</td><td>${m.special_notes || '—'}</td>
+          <td>${statusBadge(m.status)}</td>
+          <td>${m.status === 'requested' ? `<button class="btn btn-danger btn-sm" onclick="cancelMeal(${m.id}, this)">✕ Cancel</button>` : '—'}</td>
+        </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function cancelMeal(id, btn) {
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        await apiCall(`/api/meals/${id}/cancel`, { method: 'PATCH' });
+        showToast('Meal request cancelled', 'success');
+        loadMeals();
+      } catch (e) { showToast(e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    // ── Lab Booking ──
+    document.getElementById('lab-date').addEventListener('change', loadLabSlots);
+
+    async function loadLabSlots() {
+      const date = document.getElementById('lab-date').value;
+      if (!date) return;
+      try {
+        const slots = await apiCall(`/api/lab/slots?date=${date}`);
+        const tbody = document.getElementById('lab-slots-tbody');
+        const empty = document.getElementById('lab-slots-empty');
+        if (!slots.length) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+        empty.style.display = 'none';
+        tbody.innerHTML = slots.map(s => `<tr>
+          <td>${s.venue}</td>
+          <td>${s.from_time} - ${s.to_time}</td>
+          <td>${formatDate(s.slot_date)}</td>
+          <td>${s.total_systems - (s.booked || 0)}</td>
+          <td><button class="btn btn-primary btn-sm" onclick="bookLab(${s.id}, this)">📌 Book</button></td>
+        </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function bookLab(slotId, btn) {
+      const system_no = document.getElementById('lab-system').value;
+      if (!system_no) return showToast('Enter a system number', 'error');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        await apiCall(`/api/lab/book/${studentId}`, { method: 'POST', body: JSON.stringify({ slot_id: slotId, system_no: parseInt(system_no) }) });
+        showToast('Lab slot booked!', 'success');
+        loadLabSlots();
+      } catch (e) { showToast(e.message, 'error'); btn.classList.remove('loading'); btn.disabled = false; }
+    }
+
+    // ── Stats ──
     async function loadStats() {
       try {
         const leaves = await apiCall(`/api/leave/student/${studentId}`);

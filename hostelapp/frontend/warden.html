@@ -267,7 +267,7 @@
       if (!ok) return;
       btn.classList.add('loading'); btn.disabled = true;
       try {
-        await apiCall(`/api/leave/warden-approval/${id}`, {
+        await apiCall(`/api/leave/status/${id}`, {
           method: 'PUT',
           body: JSON.stringify({ status })
         });
@@ -282,14 +282,14 @@
       const reason = document.getElementById('wleave-reason').value.trim();
       const from_date = document.getElementById('wleave-from').value;
       const to_date = document.getElementById('wleave-to').value;
-      const alt_warden_name = document.getElementById('wleave-alt-name').value.trim();
-      const alt_warden_contact = document.getElementById('wleave-alt-contact').value.trim();
+      const alternate_warden = document.getElementById('wleave-alt-name').value.trim();
+      const contact = document.getElementById('wleave-alt-contact').value.trim();
       if (!reason || !from_date || !to_date) return showToast('Please fill in all required fields', 'error');
       btn.classList.add('loading'); btn.disabled = true;
       try {
         await apiCall(`/api/warden-leave/apply/${wardenId}`, {
           method: 'POST',
-          body: JSON.stringify({ leave_type, reason, from_date, to_date, alt_warden_name, alt_warden_contact })
+          body: JSON.stringify({ leavetype: leave_type, reason, from_date, to_date, contact, alternate_warden })
         });
         showToast('Leave request submitted successfully!', 'success');
         ['wleave-reason','wleave-from','wleave-to','wleave-alt-name','wleave-alt-contact'].forEach(id => document.getElementById(id).value = '');

@@ -1,4 +1,5 @@
 const pool = require('../config/db').promise;
+const { logger } = require('./logger.middleware');
 
 /**
  * RBAC Middleware Factory
@@ -41,7 +42,7 @@ function authorize(...requiredPermissions) {
             req.userPermissions = userPermissions;
             next();
         } catch (err) {
-            console.error('RBAC Error:', err);
+            logger.error('RBAC Error', { error: err.message, stack: err.stack });
             return res.status(500).json({ message: 'Authorization check failed.' });
         }
     };

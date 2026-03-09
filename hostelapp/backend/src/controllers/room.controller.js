@@ -1,3 +1,4 @@
+const { logger } = require('../middleware/logger.middleware');
 const pool = require('../config/db').promise;
 const { logAudit } = require('../services/audit.service');
 
@@ -8,7 +9,7 @@ exports.requestChange = async (req, res) => {
         const { requested_hostel_id, requested_floor, requested_room_id, reason } = req.body;
 
         const [students] = await pool.query(
-            'SELECT id, room_id FROM students WHERE student_id = ?',
+            'SELECT id, student_id as sid, room_id FROM students WHERE student_id = ?',
             [studentId]
         );
         if (students.length === 0) {
@@ -18,7 +19,7 @@ exports.requestChange = async (req, res) => {
         // Check for existing pending request
         const [existing] = await pool.query(
             "SELECT id FROM room_change_requests WHERE student_id = ? AND status = 'pending'",
-            [students[0].id]
+            [students[0].sid]
         );
         if (existing.length > 0) {
             return res.status(409).json({ message: 'You already have a pending room change request.' });
@@ -28,7 +29,7 @@ exports.requestChange = async (req, res) => {
             `INSERT INTO room_change_requests 
              (student_id, current_room_id, requested_hostel_id, requested_floor, requested_room_id, reason)
              VALUES (?, ?, ?, ?, ?, ?)`,
-            [students[0].id, students[0].room_id, requested_hostel_id || null, requested_floor || null, requested_room_id || null, reason]
+            [students[0].sid, students[0].room_id, requested_hostel_id || null, requested_floor || null, requested_room_id || null, reason]
         );
 
         await logAudit({
@@ -41,7 +42,7 @@ exports.requestChange = async (req, res) => {
 
         res.status(201).json({ message: 'Room change request submitted.', id: result.insertId });
     } catch (err) {
-        console.error('Room Change Request Error:', err);
+        logger.error('Room Change Request Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -69,7 +70,7 @@ exports.getAll = async (req, res) => {
 
         res.json(requests);
     } catch (err) {
-        console.error('Get Room Requests Error:', err);
+        logger.error('Get Room Requests Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
@@ -130,7 +131,7 @@ exports.updateStatus = async (req, res) => {
 
         res.json({ message: `Room change request ${status}.` });
     } catch (err) {
-        console.error('Update Room Status Error:', err);
+        logger.error('Update Room Status Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });
     }
 };
