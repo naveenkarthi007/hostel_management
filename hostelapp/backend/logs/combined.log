@@ -475,3 +475,41 @@
 {"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 15:04:44"}
 {"level":"info","message":"SIGINT received — shutting down gracefully","service":"hostel-api","timestamp":"2026-03-09 15:11:32"}
 {"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 15:17:41"}
+{"level":"info","message":"✅ WebSocket server initialized","service":"hostel-api","timestamp":"2026-03-09 15:17:54"}
+{"level":"info","message":"🚀 Server v2.0.0 running on port 3000 [development]","service":"hostel-api","timestamp":"2026-03-09 15:17:54"}
+{"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 15:17:54"}
+{"duration":"5ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":200,"timestamp":"2026-03-09 15:18:49","url":"/api/health","userId":null}
+{"duration":"12ms","ip":"::1","level":"warn","message":"Request failed","method":"POST","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:19:26","url":"/api/auth/login","userId":null}
+{"duration":"13ms","ip":"::1","level":"warn","message":"Request failed","method":"GET","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:19:38","url":"/api/warden-leave/all","userId":null}
+{"duration":"6ms","ip":"::1","level":"warn","message":"Request failed","method":"GET","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:19:38","url":"/api/leave/all","userId":null}
+{"duration":"6ms","ip":"::1","level":"warn","message":"Request failed","method":"GET","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:19:38","url":"/api/complaints/all","userId":null}
+{"duration":"4ms","ip":"::1","level":"warn","message":"Request failed","method":"GET","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:19:38","url":"/api/rooms/changes?status=pending","userId":null}
+{"duration":"5ms","ip":"::1","level":"warn","message":"Request failed","method":"GET","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:19:38","url":"/api/lab/slots","userId":null}
+{"duration":"8ms","ip":"::1","level":"warn","message":"Request failed","method":"GET","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:19:38","url":"/api/analytics/dashboard","userId":null}
+{"duration":"364ms","ip":"::1","level":"info","message":"Request completed","method":"POST","service":"hostel-api","status":200,"timestamp":"2026-03-09 15:19:48","url":"/api/auth/login","userId":null}
+{"duration":"65ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:19:48","url":"/api/warden-leave/all","userId":1}
+{"duration":"88ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:19:48","url":"/api/complaints/all","userId":1}
+{"duration":"125ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:19:48","url":"/api/leave/all","userId":1}
+{"duration":"95ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:19:48","url":"/api/rooms/changes?status=pending","userId":1}
+{"duration":"94ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:19:48","url":"/api/lab/slots","userId":1}
+{"duration":"97ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:19:48","url":"/api/analytics/dashboard","userId":1}
+{"duration":"16ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:19:48","url":"/api/analytics/complaint-metrics","userId":1}
+{"duration":"27ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:07","url":"/api/warden-leave/all","userId":1}
+{"duration":"33ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:07","url":"/api/complaints/all","userId":1}
+{"duration":"40ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:07","url":"/api/rooms/changes?status=pending","userId":1}
+{"duration":"54ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:07","url":"/api/leave/all","userId":1}
+{"duration":"41ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:07","url":"/api/lab/slots","userId":1}
+{"duration":"58ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:07","url":"/api/analytics/dashboard","userId":1}
+{"duration":"13ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:07","url":"/api/analytics/complaint-metrics","userId":1}
+{"duration":"272ms","ip":"::1","level":"info","message":"Request completed","method":"POST","service":"hostel-api","status":200,"timestamp":"2026-03-09 15:20:21","url":"/api/auth/login","userId":null}
+{"duration":"8ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:21","url":"/api/profile/student-by-email/tha%40gmail.com","userId":9}
+{"duration":"16ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:21","url":"/api/profile/student/STU00005","userId":9}
+{"duration":"27ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:21","url":"/api/complaints/student/STU00005","userId":9}
+{"duration":"20ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:21","url":"/api/leave/student/STU00005","userId":9}
+{"duration":"11ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:21","url":"/api/leave/student/STU00005","userId":9}
+{"duration":"12ms","ip":"::1","level":"info","message":"Request completed","method":"GET","service":"hostel-api","status":304,"timestamp":"2026-03-09 15:20:21","url":"/api/complaints/student/STU00005","userId":9}
+{"level":"info","message":"✅ WebSocket server initialized","service":"hostel-api","timestamp":"2026-03-09 15:33:32"}
+{"level":"info","message":"🚀 Server v2.0.0 running on port 3000 [development]","service":"hostel-api","timestamp":"2026-03-09 15:33:32"}
+{"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 15:33:32"}
+{"duration":"18ms","ip":"::1","level":"warn","message":"Request failed","method":"POST","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:34:12","url":"/api/auth/login","userId":null}
+{"duration":"5ms","ip":"::1","level":"warn","message":"Request failed","method":"POST","service":"hostel-api","status":401,"timestamp":"2026-03-09 15:36:40","url":"/api/auth/login","userId":null}
