@@ -18,7 +18,17 @@ async function safeQuery(sql, label) {
 }
 
 (async () => {
-    console.log('=== Fixing meal_requests ===');
+    console.log('=== Fixing users table ===');
+    await safeQuery("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE", 'users.is_active');
+    await safeQuery("ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP NULL", 'users.last_login_at');
+    await safeQuery("ALTER TABLE users ADD COLUMN last_login_ip VARCHAR(45)", 'users.last_login_ip');
+    await safeQuery("ALTER TABLE users ADD COLUMN failed_login_attempts INT DEFAULT 0", 'users.failed_login_attempts');
+    await safeQuery("ALTER TABLE users ADD COLUMN locked_until TIMESTAMP NULL", 'users.locked_until');
+    await safeQuery("ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP NULL", 'users.deleted_at');
+    await safeQuery("ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP", 'users.created_at');
+    await safeQuery("ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP", 'users.updated_at');
+
+    console.log('\n=== Fixing meal_requests ===');
     await safeQuery("ALTER TABLE meal_requests ADD COLUMN meal_date DATE AFTER student_id", 'meal_date');
     await safeQuery("UPDATE meal_requests SET meal_date = date WHERE meal_date IS NULL", 'copy date -> meal_date');
     await safeQuery("ALTER TABLE meal_requests ADD COLUMN request_type ENUM('opt_in','opt_out','special') DEFAULT 'opt_in' AFTER meal_type", 'request_type');

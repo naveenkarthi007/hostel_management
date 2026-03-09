@@ -2,15 +2,13 @@ const winston = require('winston');
 const path = require('path');
 
 // ── Winston Logger ──
-const logger = winston.createLogger({
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-    format: winston.format.combine(
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.errors({ stack: true }),
-        winston.format.json()
-    ),
-    defaultMeta: { service: 'hostel-api' },
-    transports: [
+const isVercel = !!process.env.VERCEL;
+
+const transports = [];
+
+if (!isVercel) {
+    // File transports only when running on a persistent server
+    transports.push(
         new winston.transports.File({
             filename: path.join(__dirname, '..', '..', 'logs', 'error.log'),
             level: 'error',
@@ -21,18 +19,32 @@ const logger = winston.createLogger({
             filename: path.join(__dirname, '..', '..', 'logs', 'combined.log'),
             maxsize: 5242880,
             maxFiles: 10,
-        }),
-    ],
-});
-
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
-        format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-        ),
-    }));
+        })
+    );
 }
+
+// Console transport for Vercel (serverless) and development
+if (isVercel || process.env.NODE_ENV !== 'production') {
+    transports.push(
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.colorize(),
+                winston.format.simple()
+            ),
+        })
+    );
+}
+
+const logger = winston.createLogger({
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    format: winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        winston.format.errors({ stack: true }),
+        winston.format.json()
+    ),
+    defaultMeta: { service: 'hostel-api' },
+    transports,
+});
 
 // ── Request Logger Middleware ──
 function requestLogger(req, res, next) {

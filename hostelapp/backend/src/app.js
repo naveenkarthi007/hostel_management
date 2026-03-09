@@ -91,6 +91,9 @@ app.use(sanitize);
 // STATIC FILES
 // ═══════════════════════════════════════════
 
+// Suppress favicon 404
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use(express.static(path.join(__dirname, '..', '..', 'frontend')));
 

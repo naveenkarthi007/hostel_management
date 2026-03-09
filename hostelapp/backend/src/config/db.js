@@ -18,11 +18,12 @@ const pool = mysql.createPool({
     keepAliveInitialDelay: 0
 });
 
-// Test connection on startup
+// Test connection on startup (don't exit process in serverless)
 pool.getConnection((err, connection) => {
     if (err) {
         logger.error('Database connection failed', { error: err.message });
-        process.exit(1);
+        if (!process.env.VERCEL) process.exit(1);
+        return;
     }
     logger.info('✅ MySQL connected');
     connection.release();

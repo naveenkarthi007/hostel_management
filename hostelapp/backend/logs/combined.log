@@ -470,3 +470,8 @@
 {"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 14:21:13"}
 {"level":"info","message":"SIGINT received — shutting down gracefully","service":"hostel-api","timestamp":"2026-03-09 14:22:31"}
 {"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 14:23:22"}
+{"level":"info","message":"✅ WebSocket server initialized","service":"hostel-api","timestamp":"2026-03-09 15:04:44"}
+{"level":"info","message":"🚀 Server v2.0.0 running on port 3000 [development]","service":"hostel-api","timestamp":"2026-03-09 15:04:44"}
+{"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 15:04:44"}
+{"level":"info","message":"SIGINT received — shutting down gracefully","service":"hostel-api","timestamp":"2026-03-09 15:11:32"}
+{"level":"info","message":"✅ MySQL connected","service":"hostel-api","timestamp":"2026-03-09 15:17:41"}
