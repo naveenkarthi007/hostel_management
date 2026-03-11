@@ -27,7 +27,7 @@ exports.getStudentProfile = async (req, res) => {
 
         if (student.warden_id) {
             const [wardens] = await pool.query(
-                `SELECT w.warden_id, u.name, w.contact, w.department
+                `SELECT w.warden_id, u.name, u.email, w.contact, w.department, w.assigned_floor
                  FROM wardens w
                  JOIN users u ON w.user_id = u.id
                  WHERE w.id = ?`,

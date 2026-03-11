@@ -86,17 +86,18 @@ exports.leaveTrends = async (req, res) => {
     try {
         const { period = 'weekly' } = req.query;
 
-        const groupBy = period === 'monthly'
-            ? "DATE_FORMAT(created_at, '%Y-%m')"
-            : "DATE_FORMAT(created_at, '%Y-%u')";
+        const allowedPeriods = {
+            monthly: { groupBy: "DATE_FORMAT(created_at, '%Y-%m')", interval: '12 MONTH' },
+            weekly:  { groupBy: "DATE_FORMAT(created_at, '%Y-%u')",  interval: '12 WEEK' },
+        };
 
-        const interval = period === 'monthly' ? '12 MONTH' : '12 WEEK';
+        const selected = allowedPeriods[period] || allowedPeriods.weekly;
 
         const [trends] = await pool.query(
-            `SELECT ${groupBy} as period, 
+            `SELECT ${selected.groupBy} as period, 
                     leave_type, status, COUNT(*) as count
              FROM leave_requests
-             WHERE created_at >= DATE_SUB(NOW(), INTERVAL ${interval})
+             WHERE created_at >= DATE_SUB(NOW(), INTERVAL ${selected.interval})
              GROUP BY period, leave_type, status
              ORDER BY period`
         );

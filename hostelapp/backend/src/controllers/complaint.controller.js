@@ -165,6 +165,13 @@ exports.getAllComplaints = async (req, res) => {
 
         params.push(parseInt(limit), offset);
 
+        const countParams = params.slice(0, -2); // exclude limit & offset
+
+        const [[{ total }]] = await pool.query(
+            `SELECT COUNT(*) as total FROM complaints c WHERE ${where}`,
+            countParams
+        );
+
         const [complaints] = await pool.query(
             `SELECT c.*, s.student_id as student_code, u.name as student_name,
                     u2.name as assigned_to_name
@@ -180,7 +187,15 @@ exports.getAllComplaints = async (req, res) => {
             params
         );
 
-        res.json(complaints);
+        res.json({
+            data: complaints,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                totalPages: Math.ceil(total / parseInt(limit)),
+            },
+        });
     } catch (err) {
         logger.error('Get All Complaints Error:', { error: err.message, stack: err.stack });
         res.status(500).json({ message: 'Internal server error.' });

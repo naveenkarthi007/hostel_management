@@ -16,6 +16,11 @@ exports.requestChange = async (req, res) => {
             return res.status(404).json({ message: 'Student not found.' });
         }
 
+        // Check if student has a room assigned
+        if (!students[0].room_id) {
+            return res.status(400).json({ message: 'You are not currently assigned to a room.' });
+        }
+
         // Check for existing pending request
         const [existing] = await pool.query(
             "SELECT id FROM room_change_requests WHERE student_id = ? AND status = 'pending'",
@@ -52,20 +57,27 @@ exports.getAll = async (req, res) => {
     try {
         const { status = 'pending' } = req.query;
 
+        let where = '1=1';
+        const params = [];
+        if (status && status !== 'all') {
+            where += ' AND rcr.status = ?';
+            params.push(status);
+        }
+
         const [requests] = await pool.query(
             `SELECT rcr.*, s.student_id as student_code, u.name as student_name,
                     h1.name as current_hostel, r1.room_number as current_room,
                     h2.name as requested_hostel, r2.room_number as requested_room
              FROM room_change_requests rcr
-             JOIN students s ON rcr.student_id = s.id
+             JOIN students s ON rcr.student_id = s.student_id
              JOIN users u ON s.user_id = u.id
              LEFT JOIN rooms r1 ON rcr.current_room_id = r1.id
              LEFT JOIN hostels h1 ON r1.hostel_id = h1.id
              LEFT JOIN rooms r2 ON rcr.requested_room_id = r2.id
              LEFT JOIN hostels h2 ON rcr.requested_hostel_id = h2.id
-             WHERE rcr.status = ?
+             WHERE ${where}
              ORDER BY rcr.created_at DESC`,
-            [status]
+            params
         );
 
         res.json(requests);
@@ -95,29 +107,41 @@ exports.updateStatus = async (req, res) => {
             [status, req.user.id, id]
         );
 
-        // If approved, update student's room
+        // If approved, update student's room (wrapped in transaction)
         if (status === 'approved' && current[0].requested_room_id) {
-            await pool.query(
-                'UPDATE students SET room_id = ?, hostel_id = COALESCE(?, hostel_id) WHERE id = ?',
-                [current[0].requested_room_id, current[0].requested_hostel_id, current[0].student_id]
-            );
+            const connection = await pool.getConnection();
+            try {
+                await connection.beginTransaction();
 
-            // Update room occupancy
-            if (current[0].current_room_id) {
-                await pool.query(
-                    'UPDATE rooms SET current_occupancy = GREATEST(current_occupancy - 1, 0) WHERE id = ?',
-                    [current[0].current_room_id]
+                await connection.query(
+                    'UPDATE students SET room_id = ?, hostel_id = COALESCE(?, hostel_id) WHERE student_id = ?',
+                    [current[0].requested_room_id, current[0].requested_hostel_id, current[0].student_id]
                 );
-            }
-            await pool.query(
-                'UPDATE rooms SET current_occupancy = current_occupancy + 1 WHERE id = ?',
-                [current[0].requested_room_id]
-            );
 
-            await pool.query(
-                'UPDATE room_change_requests SET completed_at = NOW(), status = ? WHERE id = ?',
-                ['completed', id]
-            );
+                // Update room occupancy
+                if (current[0].current_room_id) {
+                    await connection.query(
+                        'UPDATE rooms SET current_occupancy = GREATEST(current_occupancy - 1, 0) WHERE id = ?',
+                        [current[0].current_room_id]
+                    );
+                }
+                await connection.query(
+                    'UPDATE rooms SET current_occupancy = current_occupancy + 1 WHERE id = ?',
+                    [current[0].requested_room_id]
+                );
+
+                await connection.query(
+                    'UPDATE room_change_requests SET completed_at = NOW(), status = ? WHERE id = ?',
+                    ['completed', id]
+                );
+
+                await connection.commit();
+            } catch (txErr) {
+                await connection.rollback();
+                throw txErr;
+            } finally {
+                connection.release();
+            }
         }
 
         await logAudit({

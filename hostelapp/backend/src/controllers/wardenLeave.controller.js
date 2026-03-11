@@ -20,13 +20,18 @@ exports.applyLeave = async (req, res) => {
 
         const warden = wardenRows[0];
 
-        // Find alternate warden
-        const [altRows] = await pool.query(
-            'SELECT id FROM wardens WHERE contact = ?',
-            [contact]
-        );
-        if (!altRows.length) {
-            return res.status(404).json({ message: 'Alternate warden not found.' });
+        // Find alternate warden (optional)
+        let altWardenId = null;
+        if (contact) {
+            const [altRows] = await pool.query(
+                'SELECT id FROM wardens WHERE contact = ? LIMIT 1',
+                [contact]
+            );
+            if (altRows.length > 0) {
+                altWardenId = altRows[0].id;
+            } else {
+                return res.status(404).json({ message: 'Alternate warden with given contact not found.' });
+            }
         }
 
         // Check overlapping dates
@@ -34,7 +39,7 @@ exports.applyLeave = async (req, res) => {
             `SELECT id FROM warden_leave_requests 
              WHERE warden_id = ? AND status != 'rejected'
              AND ((from_date <= ? AND to_date >= ?) OR (from_date <= ? AND to_date >= ?))`,
-            [warden.id, to_date, from_date, from_date, to_date]
+            [warden.warden_id, to_date, from_date, from_date, to_date]
         );
 
         if (existing.length > 0) {
@@ -45,7 +50,7 @@ exports.applyLeave = async (req, res) => {
             `INSERT INTO warden_leave_requests 
              (warden_id, leave_type, from_date, to_date, reason, alternate_warden_id, contact, status)
              VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [warden.id, leavetype, from_date, to_date, reason, altRows[0].id, contact]
+            [warden.warden_id, leavetype, from_date, to_date, reason, altWardenId, contact || null]
         );
 
         // Notify hostel managers
@@ -122,7 +127,7 @@ exports.updateLeaveStatus = async (req, res) => {
         );
 
         // Notify the warden
-        const [warden] = await pool.query('SELECT user_id FROM wardens WHERE id = ?', [current[0].warden_id]);
+        const [warden] = await pool.query('SELECT user_id FROM wardens WHERE warden_id = ?', [current[0].warden_id]);
         if (warden.length > 0) {
             const { notifyUser } = require('../services/socket.service');
             await notifyUser(warden[0].user_id, {
@@ -156,18 +161,25 @@ exports.getAllLeaves = async (req, res) => {
     try {
         const { status = 'pending' } = req.query;
 
+        let where = '1=1';
+        const params = [];
+        if (status && status !== 'all') {
+            where += ' AND wl.status = ?';
+            params.push(status);
+        }
+
         const [rows] = await pool.query(
             `SELECT wl.*, 
                     u1.name AS warden_name,
                     u2.name AS alternate_warden_name
              FROM warden_leave_requests wl
-             JOIN wardens w1 ON wl.warden_id = w1.id
+             JOIN wardens w1 ON wl.warden_id = w1.warden_id
              JOIN users u1 ON w1.user_id = u1.id
-             JOIN wardens w2 ON wl.alternate_warden_id = w2.id
-             JOIN users u2 ON w2.user_id = u2.id
-             WHERE wl.status = ?
+             LEFT JOIN wardens w2 ON wl.alternate_warden_id = w2.id
+             LEFT JOIN users u2 ON w2.user_id = u2.id
+             WHERE ${where}
              ORDER BY wl.created_at DESC`,
-            [status]
+            params
         );
 
         res.json(rows);

@@ -35,7 +35,7 @@ function validate(schemas) {
 
         if (errors.length > 0) {
             return res.status(400).json({
-                message: 'Validation failed',
+                message: errors.map(e => e.message).join('. '),
                 errors,
             });
         }
@@ -129,6 +129,14 @@ const labSchemas = {
         slot_id: Joi.number().integer().required(),
         system_no: Joi.number().integer().min(1).required(),
     }),
+
+    createSlot: Joi.object({
+        venue: Joi.string().trim().max(100).required(),
+        from_time: Joi.string().pattern(/^\d{2}:\d{2}(:\d{2})?$/).required(),
+        to_time: Joi.string().pattern(/^\d{2}:\d{2}(:\d{2})?$/).required(),
+        slot_date: Joi.date().iso().required(),
+        total_systems: Joi.number().integer().min(1).required(),
+    }),
 };
 
 const bulkSchemas = {
@@ -143,6 +151,18 @@ const bulkSchemas = {
             hostel_code: Joi.string().trim().max(20).optional(),
             room_number: Joi.string().trim().max(20).optional(),
             warden_id: Joi.string().trim().max(20).optional(),
+        })).min(1).max(500).required(),
+    }),
+
+    wardens: Joi.object({
+        wardens: Joi.array().items(Joi.object({
+            name: Joi.string().trim().min(2).max(100).required(),
+            email: Joi.string().email().lowercase().trim().required(),
+            warden_id: Joi.string().trim().max(20).required(),
+            contact: Joi.string().trim().max(15).optional(),
+            department: Joi.string().trim().max(50).optional(),
+            hostel_code: Joi.string().trim().max(20).optional(),
+            floor: Joi.string().trim().max(10).optional(),
         })).min(1).max(500).required(),
     }),
 };

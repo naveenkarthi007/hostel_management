@@ -46,7 +46,7 @@ exports.applyLeave = async (req, res) => {
 
         // Notify warden
         const [wardenUser] = await pool.query(
-            'SELECT user_id FROM wardens WHERE id = ?', [student.warden_id]
+            'SELECT user_id FROM wardens WHERE warden_id = ?', [student.warden_id]
         );
         if (wardenUser.length > 0) {
             await notifyUser(wardenUser[0].user_id, {
@@ -93,7 +93,7 @@ exports.getLeavesByStudent = async (req, res) => {
              WHERE lr.student_id = ?
              ORDER BY lr.created_at DESC
              LIMIT 20`,
-            [student[0].id]
+            [studentId]
         );
 
         res.json(leaves);
@@ -112,7 +112,7 @@ exports.getAllLeaves = async (req, res) => {
         const [leaves] = await pool.query(
             `SELECT lr.*, s.student_id as student_code, u.name as student_name, u.email as student_email
              FROM leave_requests lr
-             JOIN students s ON lr.student_id = s.id
+             JOIN students s ON lr.student_id = s.student_id
              JOIN users u ON s.user_id = u.id
              WHERE lr.status = ?
              ORDER BY lr.created_at DESC
@@ -165,7 +165,7 @@ exports.updateLeaveStatus = async (req, res) => {
 
         // Notify student
         const [student] = await pool.query(
-            'SELECT user_id FROM students WHERE id = ?', [current[0].student_id]
+            'SELECT user_id FROM students WHERE student_id = ?', [current[0].student_id]
         );
         if (student.length > 0) {
             await notifyUser(student[0].user_id, {

@@ -9,6 +9,15 @@ const app = require('./app');
 const { logger } = require('./middleware/logger.middleware');
 const { initializeSocket } = require('./services/socket.service');
 
+// ── Validate required env vars ──
+const requiredEnvVars = ['JWT_SECRET', 'JWT_REFRESH_SECRET'];
+for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+        logger.error(`Missing required environment variable: ${envVar}`);
+        process.exit(1);
+    }
+}
+
 const server = http.createServer(app);
 
 // ── WebSocket Setup ──
@@ -26,6 +35,15 @@ function shutdown(signal) {
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled Rejection', { reason: reason?.message || reason });
+});
+
+process.on('uncaughtException', (err) => {
+    logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
+    shutdown('uncaughtException');
+});
 
 // ── Start Server ──
 const PORT = process.env.PORT || 3000;

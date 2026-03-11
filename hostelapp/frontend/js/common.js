@@ -5,9 +5,11 @@ const API = window.location.origin;
 // ══════════════════════════════════════════
 function saveAuth(data) {
     localStorage.setItem('token', data.accessToken);
+    if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
 }
 function getToken() { return localStorage.getItem('token'); }
+function getRefreshToken() { return localStorage.getItem('refreshToken'); }
 function getUser() { return JSON.parse(localStorage.getItem('user') || 'null'); }
 function logout() {
     localStorage.clear();
@@ -43,6 +45,24 @@ function requireAuth(allowedRoles) {
 // ══════════════════════════════════════════
 // API FETCH
 // ══════════════════════════════════════════
+let _refreshing = null;
+async function _refreshAccessToken() {
+    const rt = getRefreshToken();
+    if (!rt) return false;
+    try {
+        const res = await fetch(API + '/api/auth/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken: rt }),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        localStorage.setItem('token', data.accessToken);
+        if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+        return true;
+    } catch { return false; }
+}
+
 async function apiCall(url, options = {}) {
     const token = getToken();
     const headers = { ...(options.headers || {}) };
@@ -50,7 +70,27 @@ async function apiCall(url, options = {}) {
     if (!(options.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
     }
-    const res = await fetch(API + url, { ...options, headers });
+    let res = await fetch(API + url, { ...options, headers });
+
+    // Auto-refresh on 401
+    if (res.status === 401) {
+        const errData = await res.json().catch(() => ({}));
+        if (errData.code === 'TOKEN_EXPIRED' || errData.message === 'Token expired.') {
+            if (!_refreshing) _refreshing = _refreshAccessToken();
+            const ok = await _refreshing;
+            _refreshing = null;
+            if (ok) {
+                headers['Authorization'] = 'Bearer ' + getToken();
+                res = await fetch(API + url, { ...options, headers });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || data.error || 'Request failed');
+                return data;
+            }
+        }
+        logout();
+        return;
+    }
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || data.error || 'Request failed');
     return data;
@@ -151,7 +191,6 @@ function confirmDialog(message, title = 'Are you sure?') {
 function setButtonLoading(btn, isLoading, originalText) {
     if (isLoading) {
         btn.dataset.originalText = btn.innerHTML;
-        btn.class = (btn.className + ' loading').trim();
         btn.classList.add('loading');
         btn.disabled = true;
         btn.innerHTML = originalText || btn.dataset.originalText || 'Loading...';

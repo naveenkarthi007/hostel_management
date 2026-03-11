@@ -30,6 +30,7 @@ const app = express();
 // ═══════════════════════════════════════════
 
 // Secure HTTP headers
+const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -39,7 +40,9 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "http://localhost:*", "ws://localhost:*"],
+            connectSrc: isProduction
+                ? ["'self'", "https:", "wss:"]
+                : ["'self'", "http://localhost:*", "ws://localhost:*"],
         }
     }
 }));
@@ -49,7 +52,9 @@ app.use(hpp());
 
 // CORS
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN
+        ? process.env.CORS_ORIGIN.split(',')
+        : (process.env.VERCEL ? true : 'http://localhost:3000'),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -138,9 +143,17 @@ app.get('/api/health', (req, res) => {
 // SPA FALLBACK
 // ═══════════════════════════════════════════
 
-app.get('/{*splat}', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'index.html'));
-});
+if (!process.env.VERCEL) {
+    // Local/Docker: serve frontend for unmatched routes
+    app.get('/{*splat}', (req, res) => {
+        res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'index.html'));
+    });
+} else {
+    // Vercel: return 404 JSON for unmatched API routes (frontend handled by Vercel routing)
+    app.use((req, res) => {
+        res.status(404).json({ message: 'Not found' });
+    });
+}
 
 // ═══════════════════════════════════════════
 // GLOBAL ERROR HANDLER (must be last)

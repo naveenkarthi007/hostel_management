@@ -5,7 +5,7 @@ dotenv.config();
 
 const { logger } = require('../middleware/logger.middleware');
 
-const pool = mysql.createPool({
+const poolConfig = {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER,
@@ -16,13 +16,24 @@ const pool = mysql.createPool({
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0
-});
+};
+
+// Enable SSL for cloud databases (Aiven, PlanetScale, Railway, etc.)
+if (process.env.DB_SSL === 'true') {
+    poolConfig.ssl = { rejectUnauthorized: true };
+}
+
+const pool = mysql.createPool(poolConfig);
 
 // Test connection on startup (don't exit process in serverless)
 pool.getConnection((err, connection) => {
     if (err) {
         logger.error('Database connection failed', { error: err.message });
-        if (!process.env.VERCEL) process.exit(1);
+        if (!process.env.VERCEL) {
+            process.exit(1);
+        } else {
+            logger.error('Running on Vercel — DB connection failed at startup. All queries will fail.');
+        }
         return;
     }
     logger.info('✅ MySQL connected');

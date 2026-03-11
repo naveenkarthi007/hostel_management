@@ -9,9 +9,13 @@ let io = null;
 const userSockets = new Map();
 
 function initializeSocket(server) {
+    const corsOrigin = process.env.CORS_ORIGIN
+        ? process.env.CORS_ORIGIN.split(',')
+        : 'http://localhost:3000';
+
     io = new Server(server, {
         cors: {
-            origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+            origin: corsOrigin,
             methods: ['GET', 'POST'],
             credentials: true,
         },

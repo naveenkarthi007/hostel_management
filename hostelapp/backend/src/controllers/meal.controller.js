@@ -71,7 +71,7 @@ exports.getAll = async (req, res) => {
         const [meals] = await pool.query(
             `SELECT mr.*, s.student_id as student_code, u.name as student_name
              FROM meal_requests mr
-             JOIN students s ON mr.student_id = s.id
+             JOIN students s ON mr.student_id = s.student_id
              JOIN users u ON s.user_id = u.id
              WHERE ${where}
              ORDER BY mr.meal_date DESC, mr.meal_type`,

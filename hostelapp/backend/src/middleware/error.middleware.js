@@ -1,6 +1,10 @@
 const { logger } = require('./logger.middleware');
 
 function errorHandler(err, req, res, _next) {
+    if (res.headersSent) {
+        return _next(err);
+    }
+
     logger.error('Unhandled error', {
         message: err.message,
         stack: err.stack,

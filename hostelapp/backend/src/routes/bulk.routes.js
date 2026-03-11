@@ -6,6 +6,6 @@ const { authorize } = require('../middleware/rbac.middleware');
 const { validate, bulkSchemas } = require('../middleware/validation.middleware');
 
 router.post('/students', verifyToken, authorize('user:bulk_import'), validate({ body: bulkSchemas.students }), bulk.bulkImportStudents);
-router.post('/wardens', verifyToken, authorize('user:bulk_import'), bulk.bulkImportWardens);
+router.post('/wardens', verifyToken, authorize('user:bulk_import'), validate({ body: bulkSchemas.wardens }), bulk.bulkImportWardens);
 
 module.exports = router;

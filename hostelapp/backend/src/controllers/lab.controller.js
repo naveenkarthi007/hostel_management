@@ -56,26 +56,38 @@ exports.bookSystem = async (req, res) => {
             return res.status(400).json({ message: 'Invalid system number.' });
         }
 
-        const [result] = await pool.query(
-            'INSERT INTO computer_bookings (student_id, slot_id, system_no) VALUES (?, ?, ?)',
-            [students[0].sid, slot_id, system_no]
-        );
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
 
-        // Update available count
-        await pool.query(
-            'UPDATE computerlab_slots SET available_systems = GREATEST(available_systems - 1, 0) WHERE id = ?',
-            [slot_id]
-        );
+            const [result] = await connection.query(
+                'INSERT INTO computer_bookings (student_id, slot_id, system_no) VALUES (?, ?, ?)',
+                [students[0].sid, slot_id, system_no]
+            );
 
-        await logAudit({
-            userId: req.user.id, userEmail: req.user.email,
-            action: 'CREATE', module: 'lab',
-            targetTable: 'computer_bookings', targetId: result.insertId,
-            newValues: { studentId, slot_id, system_no },
-            req,
-        });
+            // Update available count
+            await connection.query(
+                'UPDATE computerlab_slots SET available_systems = GREATEST(available_systems - 1, 0) WHERE id = ?',
+                [slot_id]
+            );
 
-        res.status(201).json({ message: 'System booked successfully.', id: result.insertId });
+            await connection.commit();
+
+            await logAudit({
+                userId: req.user.id, userEmail: req.user.email,
+                action: 'CREATE', module: 'lab',
+                targetTable: 'computer_bookings', targetId: result.insertId,
+                newValues: { studentId, slot_id, system_no },
+                req,
+            });
+
+            res.status(201).json({ message: 'System booked successfully.', id: result.insertId });
+        } catch (txErr) {
+            await connection.rollback();
+            throw txErr;
+        } finally {
+            connection.release();
+        }
     } catch (err) {
         if (err.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ message: 'This system is already booked for this slot.' });
@@ -95,11 +107,23 @@ exports.cancelBooking = async (req, res) => {
             return res.status(404).json({ message: 'Booking not found.' });
         }
 
-        await pool.query("UPDATE computer_bookings SET status = 'cancelled' WHERE id = ?", [id]);
-        await pool.query(
-            'UPDATE computerlab_slots SET available_systems = available_systems + 1 WHERE id = ?',
-            [booking[0].slot_id]
-        );
+        const connection = await pool.getConnection();
+        try {
+            await connection.beginTransaction();
+
+            await connection.query("UPDATE computer_bookings SET status = 'cancelled' WHERE id = ?", [id]);
+            await connection.query(
+                'UPDATE computerlab_slots SET available_systems = available_systems + 1 WHERE id = ?',
+                [booking[0].slot_id]
+            );
+
+            await connection.commit();
+        } catch (txErr) {
+            await connection.rollback();
+            throw txErr;
+        } finally {
+            connection.release();
+        }
 
         res.json({ message: 'Booking cancelled.' });
     } catch (err) {

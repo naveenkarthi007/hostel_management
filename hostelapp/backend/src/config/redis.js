@@ -3,7 +3,13 @@ let redisClient = null;
 async function getRedisClient() {
     if (process.env.REDIS_ENABLED !== 'true') return null;
 
-    if (!redisClient) {
+    if (!redisClient || !redisClient.isReady) {
+        // Clean up stale client if it exists
+        if (redisClient) {
+            try { await redisClient.quit(); } catch (_) {}
+            redisClient = null;
+        }
+
         const { createClient } = require('redis');
         redisClient = createClient({
             socket: {
@@ -28,7 +34,14 @@ async function cacheGet(key, computeFn, ttlSeconds = 300) {
     if (!client) return computeFn();
 
     const cached = await client.get(key);
-    if (cached) return JSON.parse(cached);
+    if (cached) {
+        try {
+            return JSON.parse(cached);
+        } catch (parseErr) {
+            // Corrupted cache entry — delete it and fall through to recompute
+            await client.del(key).catch(() => {});
+        }
+    }
 
     const result = await computeFn();
     await client.setEx(key, ttlSeconds, JSON.stringify(result));
