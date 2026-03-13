@@ -130,13 +130,29 @@ app.use('/api/bulk', bulkRoutes);
 // ═══════════════════════════════════════════
 
 app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        version: '2.0.0',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: process.env.NODE_ENV || 'development',
-    });
+    const promisePool = require('./config/db').promise;
+    promisePool.query('SELECT 1')
+        .then(() => {
+            res.json({
+                status: 'ok',
+                version: '2.0.0',
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime(),
+                environment: process.env.NODE_ENV || 'development',
+                db: 'connected',
+            });
+        })
+        .catch(() => {
+            res.status(503).json({
+                status: 'degraded',
+                version: '2.0.0',
+                timestamp: new Date().toISOString(),
+                uptime: process.uptime(),
+                environment: process.env.NODE_ENV || 'development',
+                db: 'error',
+                message: 'Database unavailable',
+            });
+        });
 });
 
 // ═══════════════════════════════════════════

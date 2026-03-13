@@ -12,7 +12,7 @@ const { initializeSocket } = require('./services/socket.service');
 // ── Validate required env vars ──
 const requiredEnvVars = ['JWT_SECRET', 'JWT_REFRESH_SECRET'];
 for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
+    if (!process.env[envVar]?.trim()) {
         logger.error(`Missing required environment variable: ${envVar}`);
         process.exit(1);
     }

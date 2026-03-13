@@ -14,7 +14,7 @@ exports.verifyToken = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET.trim());
         req.user = decoded;
         next();
     } catch (err) {
@@ -35,7 +35,7 @@ exports.verifyRefreshToken = async (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET.trim());
         req.refreshPayload = decoded;
         req.rawRefreshToken = refreshToken;
         next();

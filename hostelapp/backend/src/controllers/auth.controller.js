@@ -6,22 +6,37 @@ const pool = require('../config/db').promise;
 const { logAudit } = require('../services/audit.service');
 
 const BCRYPT_ROUNDS = 12;
+let usersColumnSetCache = null;
+
+async function getUsersColumnSet() {
+    if (usersColumnSetCache) {
+        return usersColumnSetCache;
+    }
+
+    const [columns] = await pool.query('SHOW COLUMNS FROM users');
+    usersColumnSetCache = new Set(columns.map((col) => col.Field));
+    return usersColumnSetCache;
+}
+
+function hasUsersColumn(columnSet, columnName) {
+    return columnSet.has(columnName);
+}
 
 // ── Token Generation ──
 
 function generateAccessToken(user) {
     return jwt.sign(
         { id: user.id, email: user.email, role: user.role, roleId: user.roleId },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_ACCESS_EXPIRY || '15m' }
+        process.env.JWT_SECRET.trim(),
+        { expiresIn: (process.env.JWT_ACCESS_EXPIRY || '15m').trim() }
     );
 }
 
 function generateRefreshToken(user) {
     return jwt.sign(
         { id: user.id, email: user.email, tokenType: 'refresh' },
-        process.env.JWT_REFRESH_SECRET,
-        { expiresIn: process.env.JWT_REFRESH_EXPIRY || '7d' }
+        process.env.JWT_REFRESH_SECRET.trim(),
+        { expiresIn: (process.env.JWT_REFRESH_EXPIRY || '7d').trim() }
     );
 }
 
@@ -33,11 +48,16 @@ async function storeRefreshToken(userId, token, req) {
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    await pool.query(
-        `INSERT INTO refresh_tokens (user_id, token_hash, device_info, ip_address, expires_at)
-         VALUES (?, ?, ?, ?, ?)`,
-        [userId, tokenHash, req.get('user-agent')?.substring(0, 255), req.ip, expiresAt]
-    );
+    try {
+        await pool.query(
+            `INSERT INTO refresh_tokens (user_id, token_hash, device_info, ip_address, expires_at)
+             VALUES (?, ?, ?, ?, ?)`,
+            [userId, tokenHash, req.get('user-agent')?.substring(0, 255), req.ip, expiresAt]
+        );
+    } catch (err) {
+        // Keep login/register functional even if refresh token table is not yet migrated.
+        logger.warn('Skipping refresh token persistence', { error: err.message });
+    }
 }
 
 // ── Register ──
@@ -93,29 +113,35 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        const usersColumns = await getUsersColumnSet();
 
         const [users] = await pool.query(
             `SELECT u.*, r.role_name FROM users u
              JOIN roles r ON u.role_id = r.id
-             WHERE u.email = ? AND u.deleted_at IS NULL`,
+             WHERE u.email = ?`,
             [email]
         );
 
-        if (users.length === 0) {
+        const user = users.find((u) => {
+            if (!hasUsersColumn(usersColumns, 'deleted_at')) {
+                return true;
+            }
+            return !u.deleted_at;
+        });
+
+        if (!user) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        const user = users[0];
-
         // Check account lock
-        if (user.locked_until && new Date(user.locked_until) > new Date()) {
+        if (hasUsersColumn(usersColumns, 'locked_until') && user.locked_until && new Date(user.locked_until) > new Date()) {
             return res.status(423).json({
                 message: 'Account temporarily locked. Try again later.',
                 lockedUntil: user.locked_until,
             });
         }
 
-        if (!user.is_active) {
+        if (hasUsersColumn(usersColumns, 'is_active') && !user.is_active) {
             return res.status(403).json({ message: 'Account deactivated. Contact admin.' });
         }
 
@@ -123,15 +149,34 @@ exports.login = async (req, res) => {
 
         if (!isMatch) {
             // Increment failed attempts
-            const newAttempts = (user.failed_login_attempts || 0) + 1;
-            const lockUntil = newAttempts >= 5
+            const currentAttempts = hasUsersColumn(usersColumns, 'failed_login_attempts')
+                ? (user.failed_login_attempts || 0)
+                : 0;
+            const newAttempts = currentAttempts + 1;
+            const lockUntil = hasUsersColumn(usersColumns, 'locked_until') && newAttempts >= 5
                 ? new Date(Date.now() + 15 * 60 * 1000) // Lock for 15 min after 5 failures
                 : null;
 
-            await pool.query(
-                'UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE id = ?',
-                [newAttempts, lockUntil, user.id]
-            );
+            const updateFields = [];
+            const updateValues = [];
+
+            if (hasUsersColumn(usersColumns, 'failed_login_attempts')) {
+                updateFields.push('failed_login_attempts = ?');
+                updateValues.push(newAttempts);
+            }
+
+            if (hasUsersColumn(usersColumns, 'locked_until')) {
+                updateFields.push('locked_until = ?');
+                updateValues.push(lockUntil);
+            }
+
+            if (updateFields.length > 0) {
+                updateValues.push(user.id);
+                await pool.query(
+                    `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`,
+                    updateValues
+                );
+            }
 
             await logAudit({
                 userId: user.id, userEmail: email,
@@ -144,10 +189,33 @@ exports.login = async (req, res) => {
         }
 
         // Reset failed attempts on success
-        await pool.query(
-            'UPDATE users SET failed_login_attempts = 0, locked_until = NULL, last_login_at = NOW(), last_login_ip = ? WHERE id = ?',
-            [req.ip, user.id]
-        );
+        const successUpdateFields = [];
+        const successUpdateValues = [];
+
+        if (hasUsersColumn(usersColumns, 'failed_login_attempts')) {
+            successUpdateFields.push('failed_login_attempts = 0');
+        }
+
+        if (hasUsersColumn(usersColumns, 'locked_until')) {
+            successUpdateFields.push('locked_until = NULL');
+        }
+
+        if (hasUsersColumn(usersColumns, 'last_login_at')) {
+            successUpdateFields.push('last_login_at = NOW()');
+        }
+
+        if (hasUsersColumn(usersColumns, 'last_login_ip')) {
+            successUpdateFields.push('last_login_ip = ?');
+            successUpdateValues.push(req.ip);
+        }
+
+        if (successUpdateFields.length > 0) {
+            successUpdateValues.push(user.id);
+            await pool.query(
+                `UPDATE users SET ${successUpdateFields.join(', ')} WHERE id = ?`,
+                successUpdateValues
+            );
+        }
 
         const tokenUser = { id: user.id, email: user.email, role: user.role_name, roleId: user.role_id };
         const accessToken = generateAccessToken(tokenUser);
